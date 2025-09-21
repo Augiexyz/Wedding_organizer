@@ -1,0 +1,148 @@
+{% comment %} beranda/templates/beranda/detail_wo.html {% endcomment %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profil_wo.nama_brand }} - Wedding Organizer Samarinda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .tag { background-color: #FCE7F3; color: #9D174D; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .tab-button { padding: 0.75rem 1rem; font-weight: 600; color: #4B5563; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+        .tab-button.active, .tab-button:hover { color: #DB2777; border-bottom-color: #DB2777; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'daftar_wo' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
+            <div class="hidden lg:flex items-center space-x-6">
+                <a href="{% url 'daftar_wo' %}" class="text-pink-600 font-bold">Daftar WO</a>
+                <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600">Status Pesanan</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
+                <a href="{% url 'edit_profil_customer' %}" class="text-gray-500 hover:text-primary-dark"><i data-feather="user"></i></a>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
+                        <i data-feather="log-out"></i>
+                    </button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6 md:p-10">
+        <!-- Banner & Info Utama WO -->
+        <section class="bg-white rounded-2xl shadow-lg overflow-hidden mb-10">
+            <div class="h-48 md:h-64 bg-cover bg-center" 
+                 style="background-image: url('{% if profil_wo.foto_sampul %}{{ profil_wo.foto_sampul.url }}{% else %}https://images.unsplash.com/photo-1523438097201-512ae7d59c44?q=80&w=1200{% endif %}');">
+            </div>
+            <div class="p-6 md:p-8">
+                <div class="flex flex-col sm:flex-row items-start sm:items-end -mt-20 sm:-mt-16">
+                    {% if profil_wo.logo %}
+                    <img src="{{ profil_wo.logo.url }}" alt="Logo {{ profil_wo.nama_brand }}" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md">
+                    {% else %}
+                    <img src="https://placehold.co/150x150/F9A8D4/831843?text={{ profil_wo.nama_brand|slice:':1' }}" alt="Logo WO" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md">
+                    {% endif %}
+                    <div class="sm:ml-6 mt-4 sm:mt-0">
+                        <h1 class="text-3xl md:text-4xl font-bold font-serif-display text-primary-dark">{{ profil_wo.nama_brand }}</h1>
+                        <p class="text-gray-500 text-md mt-1 flex items-center"><i data-feather="map-pin" class="w-4 h-4 mr-2"></i>{{ profil_wo.alamat|truncatewords:4 }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigasi Tab & Konten -->
+        <section>
+            <div class="bg-white rounded-t-lg shadow-md">
+                <nav class="flex border-b" id="tabs">
+                    <button class="tab-button active" data-target="tentang">Tentang WO</button>
+                    <button class="tab-button" data-target="paket">Daftar Paket</button>
+                    <button class="tab-button" data-target="galeri">Galeri Portofolio</button>
+                </nav>
+            </div>
+
+            <div class="bg-white rounded-b-lg shadow-lg p-6 md:p-8">
+                <!-- Konten Tab: Tentang -->
+                <div id="tentang" class="tab-content active">
+                    <h3 class="text-2xl font-bold text-primary-dark mb-4">Tentang {{ profil_wo.nama_brand }}</h3>
+                    <div class="prose max-w-none text-gray-700 leading-relaxed">
+                        {{ profil_wo.deskripsi|linebreaks }}
+                    </div>
+                </div>
+
+                <!-- Konten Tab: Paket -->
+                <div id="paket" class="tab-content">
+                    <div class="space-y-6">
+                        {% for paket in pakets %}
+                        <div class="border rounded-lg p-6 flex flex-col md:flex-row justify-between items-start hover:shadow-md transition">
+                            <div>
+                                <h4 class="text-xl font-bold text-pink-700">{{ paket.nama_paket }}</h4>
+                                <p class="text-gray-500 mt-1">{{ paket.deskripsi|truncatewords:15 }}</p>
+                            </div>
+                            <div class="text-left md:text-right mt-4 md:mt-0">
+                                <p class="text-2xl font-bold text-primary-dark">Rp {{ paket.harga|intcomma }}</p>
+                                <a href="{% url 'detail_paket' paket.id %}" class="btn-primary font-semibold py-2 px-5 rounded-lg mt-2 inline-block">Lihat Detail & Pesan</a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500">Wedding organizer ini belum memiliki paket aktif.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Konten Tab: Galeri -->
+                <div id="galeri" class="tab-content">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {% for foto in profil_wo.galeri.all %}
+                            <img src="{{ foto.foto.url }}" alt="Galeri {{ profil_wo.nama_brand }}" class="rounded-lg object-cover w-full h-48 cursor-pointer hover:opacity-80 transition">
+                        {% empty %}
+                            <p class="text-gray-500 col-span-full">Wedding organizer ini belum memiliki galeri portofolio.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        feather.replace();
+        
+        // Script untuk fungsionalitas Tab
+        const tabs = document.getElementById('tabs');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.addEventListener('click', (event) => {
+            const targetButton = event.target.closest('button');
+            if (!targetButton) return;
+
+            tabs.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            targetButton.classList.add('active');
+            const targetContentId = targetButton.getAttribute('data-target');
+            document.getElementById(targetContentId).classList.add('active');
+        });
+    </script>
+</body>
+</html>

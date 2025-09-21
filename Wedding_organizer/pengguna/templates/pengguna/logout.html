@@ -1,0 +1,32 @@
+{% comment %} pengguna/templates/pengguna/logout.html {% endcomment %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FCE7F3; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-md p-8 text-center bg-white rounded-2xl shadow-2xl">
+        <h1 class="text-3xl font-serif-display text-[#831843] mb-4">Anda Telah Logout</h1>
+        <p class="text-gray-600 mb-8">Terima kasih telah menggunakan layanan Wedding Organizer Samarinda. Sampai jumpa lagi!</p>
+        <a href="{% url 'login' %}" 
+           class="w-full inline-block bg-[#DB2777] hover:bg-[#9D174D] text-white font-semibold py-3 px-4 rounded-lg shadow-lg">
+           Login Kembali
+        </a>
+        <div class="text-center mt-6">
+            <a href="{% url 'index' %}" class="text-sm text-gray-600 hover:text-[#831843] transition-colors">
+                &larr; Kembali ke Beranda
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

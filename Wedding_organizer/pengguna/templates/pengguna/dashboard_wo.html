@@ -1,0 +1,221 @@
+{% comment %} pengguna/templates/pengguna/dashboard_wo.html {% endcomment %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .bg-primary-dark { background-color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .status-waiting { background-color: #FEF3C7; color: #92400E; }
+        .status-confirmed { background-color: #D1FAE5; color: #065F46; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex">
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <nav>
+                <ul class="space-y-4">
+                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+<li>
+    <form action="{% url 'logout' %}" method="post" class="w-full">
+        {% csrf_token %}
+        <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+            <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+        </button>
+    </form>
+</li>                </ul>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10">
+            <header class="mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-serif-display text-primary-dark">Dashboard</h2>
+                    <p class="text-gray-500 mt-1">Selamat datang kembali, {{ profil_wo.nama_brand }}!</p>
+                </div>
+                
+            </header>
+
+            <!-- KARTU STATISTIK DINAMIS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                    <div class="bg-pink-100 p-3 rounded-full">
+                        <i data-feather="inbox" class="w-6 h-6 text-pink-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Pesanan Baru</p>
+                        <p class="text-2xl font-bold text-primary-dark">{{ pesanan_baru_count }}</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i data-feather="check-circle" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Pesanan Selesai</p>
+                        <p class="text-2xl font-bold text-primary-dark">{{ pesanan_selesai_count }}</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i data-feather="dollar-sign" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Pendapatan (Selesai)</p>
+                        <p class="text-2xl font-bold text-primary-dark">Rp {{ pendapatan_total|intcomma }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAFIK & PAKET POPULER -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+                <div class="lg:col-span-3 bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold text-primary-dark mb-4">Grafik Penjualan Bulanan</h3>
+                    <div class="h-72 relative">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold text-primary-dark mb-6">Paket Paling Populer</h3>
+                    <div class="space-y-5">
+                        {% for paket in paket_populer %}
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-gray-700 text-sm">{{ paket.nama_paket }}</span>
+                                <span class="text-sm text-gray-500">{{ paket.jumlah_pesanan }}x dipesan</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-pink-500 h-2.5 rounded-full" style="width: {% widthratio paket.jumlah_pesanan 15 100 %}%"></div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-gray-500">Belum ada paket yang dipesan.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TABEL PESANAN DINAMIS -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                <h3 class="text-xl font-bold text-primary-dark mb-6">Pesanan Masuk Terbaru</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b-2 border-gray-200">
+                                <th class="py-3 px-4 font-semibold text-gray-600">Pelanggan</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600">Paket</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600">Tgl Acara</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600">Status</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pesanan in pesanan_terbaru %}
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-4 px-4">{{ pesanan.customer.get_full_name|default:pesanan.customer.username }}</td>
+                                <td class="py-4 px-4">{{ pesanan.paket.nama_paket }}</td>
+                                <td class="py-4 px-4">{{ pesanan.tgl_acara|date:"d M Y" }}</td>
+                                <td class="py-4 px-4">
+                                    {% if pesanan.status == 'menunggu' %}
+                                        <span class="px-3 py-1 text-xs font-medium rounded-full status-waiting">{{ pesanan.get_status_display }}</span>
+                                    {% elif pesanan.status == 'dikonfirmasi' %}
+                                        <span class="px-3 py-1 text-xs font-medium rounded-full status-confirmed">{{ pesanan.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="text-gray-600">{{ pesanan.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-4"><a href="{% url 'detail_pesanan' pesanan.id %}" class="text-pink-600 hover:underline font-semibold">Lihat Detail</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-10 text-gray-500">
+                                    Belum ada pesanan yang masuk.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        feather.replace();
+
+        const ctx = document.getElementById('salesChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ chart_labels|safe }},
+                    datasets: [{
+                        label: 'Pendapatan (Juta Rp)',
+                        data: {{ chart_data|safe }},
+                        backgroundColor: 'rgba(219, 39, 119, 0.6)',
+                        borderColor: 'rgba(219, 39, 119, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        hoverBackgroundColor: 'rgba(157, 23, 77, 0.7)'
+                    }]
+                },
+                // --- BAGIAN YANG DIPERBAIKI ---
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + value + ' Jt';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('id-ID', {
+                                            style: 'currency',
+                                            currency: 'IDR',
+                                            minimumFractionDigits: 0
+                                        }).format(context.parsed.y * 1000000);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

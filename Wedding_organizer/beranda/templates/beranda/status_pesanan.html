@@ -1,0 +1,255 @@
+{% comment %} beranda/templates/beranda/status_pesanan.html {% endcomment %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Pesanan - Wedding Organizer Samarinda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+
+        /* Status styling */
+        .status-menunggu { background-color: #FEF3C7; color: #92400E; }
+        .status-dikonfirmasi { background-color: #D1FAE5; color: #065F46; }
+        .status-selesai { background-color: #DBEAFE; color: #1E40AF; }
+        .status-dibatalkan { background-color: #FEE2E2; color: #991B1B; }
+
+        /* Stepper/Timeline styling */
+        .step { display: flex; align-items: center; }
+        .step-icon { 
+            width: 2.5rem; height: 2.5rem; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; color: white; 
+            transition: all 0.3s ease;
+        }
+        .step-line { flex-grow: 1; height: 3px; transition: all 0.3s ease; }
+        .step-active .step-icon { background-color: #DB2777; box-shadow: 0 0 8px #db27776e; }
+        .step-inactive .step-icon { background-color: #F3C5D5; }
+        .step-active .step-line { background-color: #DB2777; }
+        .step-inactive .step-line { background-color: #F3C5D5; }
+
+        /* Button global */
+        .btn-primary {
+            background-color: #DB2777;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { background-color: #BE185D; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'index' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
+            <div class="hidden lg:flex items-center space-x-6">
+                <a href="{% url 'daftar_wo' %}" class="text-gray-600 hover:text-pink-600 transition">Daftar WO</a>
+                <a href="{% url 'status_pesanan' %}" class="text-pink-600 font-bold">Status Pesanan</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
+                <a href="{% url 'edit_profil_customer' %}" class="text-gray-500 hover:text-primary-dark transition" title="Edit Profil"><i data-feather="user"></i></a>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-gray-500 hover:text-primary-dark transition" title="Logout">
+                        <i data-feather="log-out"></i>
+                    </button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6 md:p-10">
+
+        {% if messages %}
+        <div class="mb-8">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg text-center font-semibold transition
+                    {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                    {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                    {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="mb-10">
+            <h1 class="text-4xl font-serif-display text-primary-dark">Dasbor Anda</h1>
+            <p class="text-gray-500 mt-1">Selamat datang, {{ request.user.first_name|default:request.user.username }}. Di sini Anda bisa memantau semua pesanan Anda.</p>
+        </div>
+
+        <!-- Pesanan Terbaru -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold text-primary-dark mb-4">Pesanan Terbaru Anda</h2>
+            {% if pesanan_terbaru %}
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100">
+                <div class="flex flex-col md:flex-row justify-between md:items-center border-b pb-4 mb-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Pesanan #{{ pesanan_terbaru.id }}</p>
+                        <h3 class="text-xl font-bold text-pink-700">{{ pesanan_terbaru.paket.nama_paket }} - {{ pesanan_terbaru.paket.wo.profilwo.nama_brand }}</h3>
+                        <p class="text-gray-600">Tanggal Acara: <strong>{{ pesanan_terbaru.tgl_acara|date:"d F Y" }}</strong></p>
+                    </div>
+                    <div class="mt-4 md:mt-0 text-right">
+                        <span class="px-4 py-2 text-sm font-bold rounded-full status-{{ pesanan_terbaru.status }}">{{ pesanan_terbaru.get_status_display }}</span>
+                        {% if pesanan_terbaru.status == 'menunggu' %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Progress Timeline -->
+                <div class="w-full">
+                    {% with status=pesanan_terbaru.status %}
+                    <div class="flex">
+                        <div class="step step-active w-1/4">
+                            <div class="step-icon"><i data-feather="check" class="w-6 h-6"></i></div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step {% if status == 'dikonfirmasi' or status == 'selesai' %}step-active{% else %}step-inactive{% endif %} w-1/4">
+                            <div class="step-icon">
+                                {% if status == 'dikonfirmasi' or status == 'selesai' %}<i data-feather="check" class="w-6 h-6"></i>{% else %}2{% endif %}
+                            </div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step {% if status == 'selesai' %}step-active{% else %}step-inactive{% endif %} w-1/4">
+                             <div class="step-icon">
+                                {% if status == 'selesai' %}<i data-feather="check" class="w-6 h-6"></i>{% else %}3{% endif %}
+                            </div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step {% if status == 'selesai' %}step-active{% else %}step-inactive{% endif %} w-1/4 justify-end">
+                            <div class="step-icon">
+                                {% if status == 'selesai' %}<i data-feather="check" class="w-6 h-6"></i>{% else %}4{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-center text-sm font-semibold text-gray-600 mt-2">
+                        <div class="w-1/4 {% if status != 'dibatalkan' %}text-pink-600{% endif %}">Dipesan</div>
+                        <div class="w-1/4 {% if status == 'dikonfirmasi' or status == 'selesai' %}text-pink-600{% endif %}">Dikonfirmasi</div>
+                        <div class="w-1/4 {% if status == 'Pembayaran' %}text-pink-600{% endif %}">Pembayaran</div>
+                        <div class="w-1/4 {% if status == 'selesai' %}text-pink-600{% endif %}">Selesai</div>
+                    </div>
+                    {% endwith %}
+                </div>
+
+                <!-- Tombol Aksi Dinamis -->
+                <div class="text-right mt-6">
+                    {% if pesanan_terbaru.status == 'menunggu' %}
+                    <button onclick="openCancelModal('{{ pesanan_terbaru.id }}')" class="text-sm text-red-600 hover:underline">
+                        Batalkan Pesanan
+                    </button>
+                    {% elif pesanan_terbaru.status == 'dikonfirmasi' %}
+                    <a href="{% url 'halaman_pembayaran' pesanan_terbaru.id %}" class="btn-primary inline-block py-2 px-6 rounded-lg font-semibold shadow">
+                        Lakukan Pembayaran
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white text-center p-10 rounded-xl shadow-lg border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-700">Tidak Ada Pesanan Aktif</h3>
+                <p class="text-gray-500 mt-2">Anda tidak memiliki pesanan yang sedang menunggu konfirmasi atau sedang berjalan.</p>
+                <a href="{% url 'daftar_wo' %}" class="btn-primary inline-block mt-6 py-2 px-6 rounded-lg font-semibold shadow">Cari Wedding Organizer</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Riwayat Pesanan -->
+        <section>
+            <h2 class="text-2xl font-bold text-primary-dark mb-4">Riwayat Pesanan</h2>
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="p-4 font-semibold text-gray-600">ID Pesanan</th>
+                                <th class="p-4 font-semibold text-gray-600">WO & Paket</th>
+                                <th class="p-4 font-semibold text-gray-600">Tanggal Acara</th>
+                                <th class="p-4 font-semibold text-gray-600">Status</th>
+                                <th class="p-4 font-semibold text-gray-600">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            {% for pesanan in riwayat_pesanan %}
+                            <tr class="hover:bg-gray-50 transition duration-200">
+                                <td class="p-4 font-medium">#{{ pesanan.id }}</td>
+                                <td class="p-4">{{ pesanan.paket.wo.profilwo.nama_brand }} - {{ pesanan.paket.nama_paket }}</td>
+                                <td class="p-4">{{ pesanan.tgl_acara|date:"d M Y" }}</td>
+                                <td class="p-4"><span class="px-3 py-1 text-xs font-medium rounded-full status-{{ pesanan.status }}">{{ pesanan.get_status_display }}</span></td>
+                                <td class="p-4 text-sm text-gray-600">
+                                    {% if pesanan.status == 'dibatalkan' and pesanan.catatan_pembatalan %}
+                                        {{ pesanan.catatan_pembatalan }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-10 text-gray-500">
+                                    Anda belum memiliki riwayat pesanan.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL KONFIRMASI PEMBATALAN -->
+    <div id="cancel-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 text-center">
+            <div class="mx-auto bg-red-100 rounded-full w-16 h-16 flex items-center justify-center">
+                <i data-feather="alert-triangle" class="w-8 h-8 text-red-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold font-serif-display text-gray-800 mt-6">Anda Yakin?</h3>
+            <p class="text-gray-600 mt-2 mb-6">Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat diurungkan.</p>
+            <form id="cancel-form" method="POST" class="w-full">
+                {% csrf_token %}
+                <div class="flex flex-col space-y-3">
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow">
+                        Ya, Batalkan Pesanan
+                    </button>
+                    <button type="button" onclick="closeCancelModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg">
+                        Tidak, Jangan Batalkan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        // JAVASCRIPT UNTUK MODAL PEMBATALAN
+        const cancelModal = document.getElementById('cancel-modal');
+        const cancelForm = document.getElementById('cancel-form');
+
+        function openCancelModal(pesananId) {
+            const url = `/organizer/batalkan-pesanan/${pesananId}/`;
+            cancelForm.setAttribute('action', url);
+            cancelModal.classList.remove('hidden');
+        }
+
+        function closeCancelModal() {
+            cancelModal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

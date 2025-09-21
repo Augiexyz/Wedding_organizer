@@ -1,0 +1,474 @@
+
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Organizer Samarinda - Wujudkan Pernikahan Impian Anda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="{% static 'js/feather.min.js' %}"></script>
+
+    <style>
+        /* Custom styles untuk tema */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Skema Warna */
+        .bg-primary { background-color: #FCE7F3; } /* Pink sangat muda */
+        .bg-secondary { background-color: #F9A8D4; } /* Pink medium */
+        .text-primary-dark { color: #831843; } /* Pink tua untuk teks */
+        .border-primary-dark { border-color: #831843; }
+        .hover-bg-primary-dark:hover { background-color: #831843; }
+        .hover-text-secondary:hover { color: #F9A8D4; }
+        .btn-primary {
+            background-color: #DB2777; /* Pink lebih kuat */
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #9D174D; /* Pink lebih gelap saat hover */
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #DB2777;
+            border: 1px solid #DB2777;
+            transition: all 0.3s ease;
+        }
+        .btn-outline:hover {
+            background-color: #DB2777;
+            color: white;
+        }
+        .section-padding {
+            padding: 4rem 1rem;
+        }
+        @media (min-width: 768px) {
+            .section-padding {
+                padding: 6rem 2rem;
+            }
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .wo-card {
+            transition: all 0.3s ease;
+        }
+        .wo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2);
+        }
+        .btn-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+        }
+        .profile-img {
+            transition: all 0.3s ease;
+        }
+        .wo-card:hover .profile-img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+
+    <!-- Header & Navigasi -->
+    <header id="header" class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'index' %}" class="text-2xl font-serif-display text-primary-dark font-bold">
+                Wedding Organizer Samarinda
+            </a>
+            <div class="hidden lg:flex items-center space-x-8">
+                <a href="#beranda" class="text-gray-600 hover-text-secondary transition">Beranda</a>
+                <a href="#cara-pesan" class="text-gray-600 hover-text-secondary transition">Cara Pemesanan</a>
+                <a href="#penyedia-wo" class="text-gray-600 hover-text-secondary transition">Penyedia WO</a>                
+                <a href="#tentang" class="text-gray-600 hover-text-secondary transition">Tentang Kami</a>
+                <a href="#kontak" class="text-gray-600 hover-text-secondary transition">Kontak</a>
+            </div>
+            
+            <!-- TOMBOL HEADER DINAMIS -->
+            <div class="hidden lg:flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    {% if user.profil and user.profil.role == 'wo' %}
+                        <a href="{% url 'dashboard_wo' %}" class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'daftar_wo' %}" class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Dashboard</a>
+                    {% endif %}
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold">Login</a>
+                    <a href="{% url 'registrasi' %}" class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Registrasi</a>
+                {% endif %}
+            </div>
+
+            <!-- Tombol Menu Mobile -->
+            <div class="lg:hidden">
+                <button id="mobile-menu-button" class="text-primary-dark focus:outline-none">
+                    <i data-feather="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </nav>
+        <!-- Menu Mobile -->
+        <div id="mobile-menu" class="hidden lg:hidden px-6 pb-4">
+            <a href="#beranda" class="block py-2 text-gray-600 hover-text-secondary">Beranda</a>
+            <a href="#penyedia-wo" class="block py-2 text-gray-600 hover-text-secondary">Penyedia WO</a>
+            <a href="#cara-pesan" class="block py-2 text-gray-600 hover-text-secondary">Cara Pemesanan</a>
+            <a href="#tentang" class="block py-2 text-gray-600 hover-text-secondary">Tentang Kami</a>
+            <a href="#kontak" class="block py-2 text-gray-600 hover-text-secondary">Kontak</a>
+            <div class="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-3">
+                <a href="#" class="btn-outline w-full text-center px-4 py-2 rounded-lg text-sm font-semibold">Login</a>
+                <a href="#" class="btn-primary w-full text-center px-4 py-2 rounded-lg text-sm font-semibold">Registrasi</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Section Beranda (Hero) -->
+        <section id="beranda" class="relative min-h-screen flex items-center bg-primary">
+    <!-- Video background -->
+    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
+        <source src="{% static 'videos/hero.mp4' %}" type="video/mp4">
+    </video>
+
+    <!-- Overlay transparan -->
+    <div class="absolute inset-0 bg-black opacity-40"></div>
+
+    <!-- Konten -->
+    <div class="container mx-auto px-6 text-center relative z-10">
+        <h1 class="text-4xl md:text-6xl font-serif-display text-white mb-4 leading-tight">
+            Wujudkan Pernikahan Impian Anda
+        </h1>
+        <p class="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto mb-8">
+            Temukan dan pesan Wedding Organizer profesional terbaik untuk hari spesial Anda dengan mudah dan aman.
+        </p>
+        <a href="#penyedia-wo" class="btn-primary px-8 py-3 rounded-lg font-semibold text-lg inline-block">
+            Temukan WO Impianmu
+        </a>
+    </div>
+</section>
+
+
+        <!-- Section Cara Pemesanan -->
+        <section id="cara-pesan" class="section-padding bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-serif-display text-primary-dark mb-4">Cara Mudah Memesan</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto mb-12">Hanya dengan tiga langkah sederhana, WO impian Anda siap membantu.</p>
+                <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center">
+                        <div class="bg-secondary text-white rounded-full w-20 h-20 flex items-center justify-center mb-4">
+                            <i data-feather="user-plus" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-primary-dark mb-2">1. Login / Registrasi</h3>
+                        <p class="text-gray-600">Buat akun atau masuk untuk memulai pencarian Wedding Organizer terbaik.</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center">
+                        <div class="bg-secondary text-white rounded-full w-20 h-20 flex items-center justify-center mb-4">
+                            <i data-feather="grid" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-primary-dark mb-2">2. Pilih Paket</h3>
+                        <p class="text-gray-600">Jelajahi berbagai penyedia WO dan pilih paket yang sesuai dengan kebutuhan dan anggaran Anda.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center">
+                        <div class="bg-secondary text-white rounded-full w-20 h-20 flex items-center justify-center mb-4">
+                            <i data-feather="send" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-primary-dark mb-2">3. Pesan & Konfirmasi</h3>
+                        <p class="text-gray-600">Lakukan pemesanan, dan tim WO akan segera menghubungi Anda untuk konfirmasi.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Daftar Penyedia WO -->
+               <section id="penyedia-wo" class="section-padding" style="background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-serif-display text-primary-dark text-center mb-12">Penyedia WO Unggulan</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    {% for wo in profil_wos_unggulan %}
+                    <!-- Kartu WO dengan Desain Baru -->
+                    <div class="wo-card glass-effect rounded-2xl overflow-hidden shadow-xl w-full">
+                        <!-- Cover Photo -->
+                        <div class="relative h-32 overflow-hidden">
+                            {% if wo.foto_sampul %}
+                            <img src="{{ wo.foto_sampul.url }}" alt="Cover {{ wo.nama_brand }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=200&fit=crop" alt="Cover Default" class="w-full h-full object-cover">
+                            {% endif %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                        </div>
+        
+                        <!-- Profile Section -->
+                        <div class="relative px-6 pb-6">
+                            <!-- Profile Picture -->
+                            <div class="flex justify-center -mt-12 mb-4">
+                                <div class="relative">
+                                    {% if wo.logo %}
+                                    <img src="{{ wo.logo.url }}" alt="Logo {{ wo.nama_brand }}" class="profile-img w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover">
+                                    {% else %}
+                                    <img src="https://placehold.co/100x100/F9A8D4/831843?text={{ wo.nama_brand|slice:':1' }}" alt="Logo {{ wo.nama_brand }}" class="profile-img w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover">
+                                    {% endif %}
+                                </div>
+                            </div>
+        
+                            <!-- WO Info -->
+                            <div class="text-center mb-4">
+                                <h3 class="text-lg font-bold text-gray-800 mb-1">{{ wo.nama_brand }}</h3>
+                                <p class="text-sm text-gray-600 mb-2">by {{ wo.user.get_full_name|default:wo.user.username }}</p>
+                                <div class="flex items-center justify-center text-sm text-gray-600 mb-3">
+                                    <i data-feather="map-pin" class="w-4 h-4 mr-1 text-pink-500"></i>
+                                    {{ wo.alamat|truncatewords:2 }}
+                                </div>
+                            </div>
+        
+                            <!-- Action Buttons -->
+                            <div class="space-y-2">
+                                {% if user.is_authenticated %}
+                                <a href="{% url 'detail_wo' wo.user.id %}" class="btn-hover block w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 transform text-sm text-center">
+                                    Lihat Detail & Paket
+                                </a>
+                                {% else %}
+                                <button type="button" class="login-required-btn btn-hover w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 transform text-sm">
+                                    Lihat Detail & Paket
+                                </button>
+                                {% endif %}
+                            </div>
+        
+                            <!-- Price Range -->
+                            <div class="mt-3 text-center">
+                                <span class="text-xs text-gray-500">Mulai dari </span>
+                                <span class="text-sm font-bold text-pink-600">Rp {{ wo.min_price|intcomma }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 md:col-span-3 text-center">Belum ada penyedia WO yang terdaftar.</p>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-center mt-12">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'daftar_wo' %}" class="btn-primary px-8 py-3 rounded-lg font-semibold">Lihat Semua Penyedia WO</a>
+                    {% else %}
+                    <button type="button" class="btn-primary px-8 py-3 rounded-lg font-semibold login-required-btn">Lihat Semua Penyedia WO</button>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section Tentang Kami -->
+        <section id="tentang" class="section-padding bg-white">
+            <div class="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+                <div class="md:w-1/2">
+                    <img src="{% static 'images/wo1.jpg' %}" alt="Tentang WO-Kita" class="rounded-lg shadow-xl w-full">
+                </div>
+                <div class="md:w-1/2">
+                    <h2 class="text-3xl md:text-4xl font-serif-display text-primary-dark mb-4">Tentang Wedding Organizer Samarinda</h2>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        Wedding Organizer Samarinda lahir dari keinginan untuk mempermudah calon pengantin menemukan Wedding Organizer yang tepat. Kami percaya bahwa setiap pernikahan adalah momen spesial yang harus direncanakan dengan sempurna.
+                    </p>
+                    <p class="text-gray-600 leading-relaxed">
+                        Platform kami menghubungkan Anda dengan para profesional terverifikasi, menawarkan transparansi harga, dan menyediakan proses pemesanan yang aman dan efisien. Misi kami adalah menjadi jembatan antara impian Anda dan kenyataan yang indah.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Kontak -->
+        <section id="kontak" class="section-padding bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-serif-display text-primary-dark mb-4">Hubungi Kami</h2>
+                    <p class="text-gray-500 max-w-2xl mx-auto">Punya pertanyaan atau butuh bantuan? Jangan ragu untuk menghubungi kami melalui informasi di bawah ini.</p>
+                </div>
+                <div class="bg-primary p-8 rounded-lg shadow-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                        <!-- Sisi Kiri: Maps -->
+                        <div class="h-80 md:h-full rounded-lg overflow-hidden shadow-md">
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127663.22037992925!2d117.0799175279619!3d-0.5021078278253683!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2df67f11c4708605%3A0x4030bfbcaf7e5d0!2sSamarinda%2C%20Samarinda%20City%2C%20East%20Kalimantan!5e0!3m2!1sen!2sid!4f13.1!5m2!1sen!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                        <!-- Sisi Kanan: Info Kontak -->
+                        <div>
+                            <h3 class="text-2xl font-bold text-primary-dark mb-6">Informasi Kontak</h3>
+                            <div class="space-y-6">
+                                <div class="flex items-start space-x-4">
+                                    <div class="bg-secondary text-white rounded-full w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                                        <i data-feather="phone" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-lg text-primary-dark">Nomor HP</h4>
+                                        <p class="text-gray-600 hover:text-pink-700 cursor-pointer">+62 856-5706-7202</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4">
+                                    <div class="bg-secondary text-white rounded-full w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                                        <i data-feather="mail" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-lg text-primary-dark">Email</h4>
+                                        <p class="text-gray-600 hover:text-pink-700 cursor-pointer">weddingorganizersamarinda@gmail.com</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4">
+                                    <div class="bg-secondary text-white rounded-full w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                                        <i data-feather="map-pin" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-lg text-primary-dark">Alamat</h4>
+                                        <p class="text-gray-600">Jl. Pernikahan Indah No. 123, Samarinda, Kalimantan Timur, Indonesia</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-serif-display font-bold mb-4">Wedding Organizer Samarinda</h3>
+                    <p class="text-gray-400">Platform terpercaya untuk menemukan Wedding Organizer terbaik di Indonesia.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Navigasi</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#beranda" class="text-gray-400 hover:text-white">Beranda</a></li>
+                        <li><a href="#penyedia-wo" class="text-gray-400 hover:text-white">Penyedia WO</a></li>
+                        <li><a href="#cara-pesan" class="text-gray-400 hover:text-white">Cara Pesan</a></li>
+                        <li><a href="#tentang" class="text-gray-400 hover:text-white">Tentang</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Syarat & Ketentuan</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Ikuti Kami</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i data-feather="facebook"></i></a>
+                        <a href="https://www.instagram.com/augiexyz_" target="_blank" class="text-gray-400 hover:text-white"><i data-feather="instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i data-feather="twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-500 text-sm">
+                &copy; 2025 Wedding Organizer Samarinda. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL NOTIFIKASI LOGIN (BARU) -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 text-center">
+            <div class="mx-auto bg-pink-100 rounded-full w-16 h-16 flex items-center justify-center">
+                <i data-feather="lock" class="w-8 h-8 text-pink-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold font-serif-display text-primary-dark mt-6">Akses Terbatas</h3>
+            <p class="text-gray-600 mt-2 mb-6">Silakan login atau registrasi terlebih dahulu untuk melihat detail lebih lanjut.</p>
+            <div class="flex flex-col space-y-3">
+                <a href="{% url 'login' %}" class="btn-primary w-full font-semibold py-3 px-6 rounded-lg">Login</a>
+                <a href="{% url 'registrasi' %}" class="btn-outline w-full font-semibold py-3 px-6 rounded-lg">Registrasi</a>
+            </div>
+            <button id="close-modal-btn" class="text-sm text-gray-500 hover:underline mt-6">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // Inisialisasi Feather Icons
+        feather.replace();
+
+        // Script untuk menu mobile
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Script untuk smooth scroll dan header shadow
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('py-2');
+                header.classList.remove('py-4');
+            } else {
+                header.classList.remove('py-2');
+                header.classList.add('py-4');
+            }
+        });
+
+        // Smooth scroll untuk semua link anchor
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+                // Tutup menu mobile setelah link di-klik
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+
+        const loginModal = document.getElementById('login-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const loginRequiredBtns = document.querySelectorAll('.login-required-btn');
+
+        // Fungsi untuk menampilkan modal
+        const showModal = () => {
+            loginModal.classList.remove('hidden');
+        };
+
+        // Fungsi untuk menyembunyikan modal
+        const hideModal = () => {
+            loginModal.classList.add('hidden');
+        };
+
+        // Tambahkan event listener ke setiap tombol "Lihat Detail" untuk pengguna yang belum login
+        loginRequiredBtns.forEach(btn => {
+            btn.addEventListener('click', showModal);
+        });
+
+        // Tambahkan event listener untuk tombol tutup
+        closeModalBtn.addEventListener('click', hideModal);
+
+        // Tambahkan event listener untuk menutup modal jika mengklik di luar area konten
+        loginModal.addEventListener('click', (event) => {
+            if (event.target === loginModal) {
+                hideModal();
+            }
+        });
+    </script>
+
+</body>
+</html>

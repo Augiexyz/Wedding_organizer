@@ -1,0 +1,217 @@
+{% comment %} organizer/templates/organizer/detail_pesanan.html {% endcomment %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pesanan #{{ pesanan.id }} - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .bg-primary-dark { background-color: #831843; }
+        .status-menunggu { background-color: #FEF3C7; color: #92400E; }
+        .btn-confirm { background-color: #10B981; color: white; transition: background-color 0.3s ease; }
+        .btn-confirm:hover { background-color: #059669; }
+        .btn-reject { background-color: #EF4444; color: white; transition: background-color 0.3s ease; }
+        .btn-reject:hover { background-color: #DC2626; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <nav>
+                <ul class="space-y-4">
+                    <li>
+                        <a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg">
+                            <i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800">
+                            <i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800">
+                            <i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800">
+                            <i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO
+                        </a>
+                    </li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                                <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="flex-1 p-6 md:p-10">
+            <header class="mb-8">
+                <a href="{% url 'kelola_pesanan' %}" class="text-pink-600 hover:underline font-semibold flex items-center mb-4">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali ke Kelola Pesanan
+                </a>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-3xl font-serif-display text-primary-dark">Detail Pesanan #{{ pesanan.id }}</h2>
+                        <p class="text-gray-500 mt-1">
+                            Pesanan dari {{ pesanan.customer.get_full_name|default:pesanan.customer.username }}
+                        </p>
+                    </div>
+                    <span class="px-4 py-2 text-sm font-bold rounded-full status-{{ pesanan.status }}">
+                        {{ pesanan.get_status_display }}
+                    </span>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Kolom Kiri -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Detail Pelanggan -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold text-primary-dark mb-4 flex items-center"><i data-feather="user" class="w-5 h-5 mr-3"></i>Informasi Pelanggan</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+                            <div><strong>Nama Pasangan:</strong><p>{{ pesanan.nama_pasangan }}</p></div>
+                            <div><strong>Tanggal Pesan:</strong><p>{{ pesanan.tgl_pesan|date:"d M Y" }}</p></div>
+                            <div><strong>No. Telepon:</strong><p>{{ pesanan.telepon }}</p></div>
+                            <div><strong>Email:</strong><p>{{ pesanan.customer.email }}</p></div>
+                            <div class="md:col-span-2"><strong>Lokasi Acara:</strong><p>{{ pesanan.lokasi_acara }}</p></div>
+                            <div class="md:col-span-2"><strong>Jumlah Tamu:</strong><p>{{ pesanan.jumlah_tamu }} orang</p></div>
+                            {% if pesanan.catatan %}
+                            <div class="md:col-span-2"><strong>Catatan Tambahan:</strong><p>{{ pesanan.catatan|linebreaks }}</p></div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Detail Paket -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                         <h3 class="text-xl font-bold text-primary-dark mb-4 flex items-center"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Detail Paket yang Dipesan</h3>
+                         <div class="border-b pb-4 mb-4">
+                             <h4 class="text-lg font-bold text-pink-700">{{ pesanan.paket.nama_paket }}</h4>
+                             <p class="text-gray-500">{{ pesanan.paket.deskripsi|truncatewords:15 }}</p>
+                         </div>
+                         <h5 class="font-semibold mb-2">Layanan yang termasuk:</h5>
+                         <div class="prose prose-sm text-gray-700">
+                             {{ pesanan.paket.deskripsi|linebreaks }}
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg sticky top-10">
+                        <h3 class="text-xl font-bold text-primary-dark mb-4">Ringkasan Acara</h3>
+                        <div class="space-y-4 mb-6">
+                            <div class="flex items-center">
+                                <i data-feather="calendar" class="w-5 h-5 mr-3 text-pink-600"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Tanggal Acara</p>
+                                    <p class="font-bold">{{ pesanan.tgl_acara|date:"d F Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i data-feather="dollar-sign" class="w-5 h-5 mr-3 text-pink-600"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Harga Paket</p>
+                                    <p class="font-bold text-xl">Rp {{ pesanan.paket.harga|intcomma }}</p>
+                                </div>
+                            </div>
+                            
+                            {# --- BAGIAN BARU: STATUS PEMBAYARAN --- #}
+                            <div class="flex items-center pt-4 border-t">
+                                <i data-feather="credit-card" class="w-5 h-5 mr-3 text-pink-600"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Status Pembayaran</p>
+                                    <p class="font-bold px-2 py-1 text-xs rounded-full inline-block status-{{ pesanan.status_pembayaran }}">
+                                        {{ pesanan.get_status_pembayaran_display }}
+                                    </p>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        
+                        <!-- BAGIAN AKSI DINAMIS -->
+                        <hr class="my-6">
+                        
+                        {% if pesanan.status == 'menunggu' %}
+                        <h3 class="text-xl font-bold text-primary-dark mb-4">Aksi Pesanan</h3>
+                        <form action="{% url 'detail_pesanan' pesanan.id %}" method="POST" class="space-y-3">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="confirm" class="w-full btn-confirm font-semibold py-3 px-4 rounded-lg shadow-md flex items-center justify-center">
+                                <i data-feather="check-circle" class="w-5 h-5 mr-2"></i>Konfirmasi Pesanan
+                            </button>
+                        </form>
+                        <button type="button" onclick="openRejectModal()" class="w-full btn-reject font-semibold py-3 px-4 rounded-lg shadow-md flex items-center justify-center mt-3">
+                            <i data-feather="x-circle" class="w-5 h-5 mr-2"></i>Tolak Pesanan
+                        </button>
+                        {% elif pesanan.status == 'dikonfirmasi' %}
+                        <h3 class="text-xl font-bold text-primary-dark mb-4">Aksi Pesanan</h3>
+                        <form action="{% url 'detail_pesanan' pesanan.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="complete" class="w-full btn-complete font-semibold py-3 px-4 rounded-lg shadow-md flex items-center justify-center">
+                                <i data-feather="award" class="w-5 h-5 mr-2"></i>Tandai Selesai
+                            </button>
+                        </form>
+                        {% elif pesanan.status == 'dibatalkan' and pesanan.catatan_pembatalan %}
+                        <h3 class="text-xl font-bold text-primary-dark mb-4">Alasan Pembatalan</h3>
+                        <div class="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
+                            <p class="text-sm">{{ pesanan.catatan_pembatalan }}</p>
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 text-center">Tidak ada aksi yang tersedia untuk status pesanan ini.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Modal Tolak Pesanan -->
+                <div id="reject-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-8">
+            <h3 class="text-2xl font-bold font-serif-display text-gray-800 text-center">Tolak Pesanan</h3>
+            <p class="text-gray-600 mt-2 mb-6 text-center">Apakah Anda yakin? Mohon berikan alasan penolakan kepada pelanggan.</p>
+            <form action="{% url 'detail_pesanan' pesanan.id %}" method="POST" class="w-full">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <div>
+                    <label for="rejection-reason" class="block text-sm font-medium text-gray-700 mb-1">Alasan Penolakan</label>
+                    <textarea id="rejection-reason" name="rejection_reason" rows="3" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Contoh: Jadwal kami sudah penuh pada tanggal tersebut." required></textarea>
+                </div>
+                <div class="flex flex-col space-y-3 mt-6">
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg">
+                        Ya, Tolak Pesanan
+                    </button>
+                    <button type="button" onclick="closeRejectModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        feather.replace();
+        const rejectModal = document.getElementById('reject-modal');
+        function openRejectModal() { rejectModal.classList.remove('hidden'); }
+        function closeRejectModal() { rejectModal.classList.add('hidden'); }
+    </script>
+</body>
+</html>

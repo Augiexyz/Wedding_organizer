@@ -1,0 +1,119 @@
+{% comment %} organizer/templates/organizer/buat_pesanan.html {% endcomment %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Pemesanan - Wedding Organizer Samarinda</title>
+    
+    <!-- Tailwind CSS & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
+        .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <!-- ... (Isi header sama seperti halaman sebelumnya) ... -->
+    </header>
+
+    <main class="container mx-auto p-6 md:p-10">
+        <div class="mb-6">
+            <a href="{% url 'detail_paket' paket.id %}" class="text-pink-600 hover:underline font-semibold flex items-center">
+                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali ke Detail Paket
+            </a>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-serif-display text-primary-dark">Formulir Pemesanan</h1>
+            <p class="text-gray-500 mt-2 max-w-2xl mx-auto">Satu langkah lagi untuk mengamankan tanggal pernikahan impian Anda.</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Kolom Kiri: Formulir -->
+                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-primary-dark mb-6">Lengkapi Detail Acara Anda</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.nama_pasangan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Pasangan</label>
+                            {{ form.nama_pasangan }}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.telepon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon Aktif</label>
+                                {{ form.telepon }}
+                            </div>
+                            <div>
+                                <label for="{{ form.tgl_acara.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pernikahan</label>
+                                {{ form.tgl_acara }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="{{ form.lokasi_acara.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Lokasi / Venue Acara</label>
+                            {{ form.lokasi_acara }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.jumlah_tamu.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Perkiraan Jumlah Tamu</label>
+                            {{ form.jumlah_tamu }}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.catatan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
+                            {{ form.catatan }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Ringkasan Pesanan -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg sticky top-28">
+                        <h3 class="text-xl font-bold text-primary-dark border-b pb-3 mb-4">Ringkasan Pesanan Anda</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Penyedia Jasa</p>
+                                <p class="font-bold text-gray-800">{{ paket.wo.profilwo.nama_brand }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Paket yang Dipesan</p>
+                                <p class="font-bold text-gray-800">{{ paket.nama_paket }}</p>
+                            </div>
+                            <hr>
+                            <div class="flex justify-between items-center">
+                                <p class="text-lg font-semibold">Total Pembayaran</p>
+                                <p class="text-2xl font-bold text-primary-dark">Rp {{ paket.harga|intcomma }}</p>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary w-full text-center font-semibold py-3 px-4 rounded-lg shadow-lg mt-6">
+                            Konfirmasi & Kirim Pesanan
+                        </button>
+                        <p class="text-xs text-gray-500 text-center mt-4">
+                            Dengan menekan tombol ini, Anda setuju dengan Syarat & Ketentuan kami.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

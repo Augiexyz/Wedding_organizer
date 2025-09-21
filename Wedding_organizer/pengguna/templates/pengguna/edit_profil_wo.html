@@ -1,0 +1,185 @@
+{% comment %} pengguna/templates/pengguna/edit_profil_wo.html {% endcomment %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profil Wedding Organizer - Wedding Organizer Samarinda</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* Custom styles yang sama dengan tema utama */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDF2F8; /* Latar belakang pink lebih lembut */
+        }
+        .font-serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+        .text-primary-dark { color: #831843; }
+        .bg-primary-dark { background-color: #831843; }
+        .btn-primary {
+            background-color: #DB2777;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #9D174D;
+        }
+        .input-field {
+            border: 1px solid #ddd;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #DB2777;
+            box-shadow: 0 0 0 2px #F9A8D4;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100">
+
+    <!-- Layout Utama dengan Sidebar -->
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:flex flex-col shadow-lg">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <nav class="flex flex-col flex-grow">
+                <ul class="space-y-4 flex-grow">
+                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                </ul>
+                
+            </nav>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+            <div class="max-w-4xl mx-auto">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 mb-6 text-sm text-green-700 bg-green-100 rounded-lg shadow" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-serif-display text-primary-dark">Edit Profil WO Anda</h2>
+                        <p class="text-gray-500 mt-2">Pastikan informasi profil Anda selalu terbaru agar menarik pelanggan.</p>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Nama Brand & Logo -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                            <div class="md:col-span-2">
+                                <label for="{{ form.nama_brand.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Brand WO</label>
+                                {{ form.nama_brand }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Logo / Foto Profil</label>
+                                <div class="flex items-center space-x-4">
+                                    {% if profil_wo.logo %}
+                                        <img src="{{ profil_wo.logo.url }}" alt="Logo {{ profil_wo.nama_brand }}" class="w-16 h-16 rounded-full object-cover">
+                                    {% else %}
+                                        <img src="https://placehold.co/100x100/F9A8D4/831843?text=Logo" alt="Logo WO" class="w-16 h-16 rounded-full object-cover">
+                                    {% endif %}
+                                    {{ form.logo }}
+                                </div>
+                                {% if profil_wo.logo %}
+                                <p class="text-xs text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah logo.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Deskripsi -->
+                        <div>
+                            <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat</label>
+                            {{ form.deskripsi }}
+                        </div>
+
+                        <!-- Kontak -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.telepon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon (WhatsApp)</label>
+                                {{ form.telepon }}
+                            </div>
+                            <div>
+                                <label for="{{ form.email_bisnis.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Email Bisnis</label>
+                                {{ form.email_bisnis }}
+                            </div>
+                        </div>
+
+                        <!-- Alamat -->
+                        <div>
+                            <label for="{{ form.alamat.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                            {{ form.alamat }}
+                        </div>
+
+                        <!-- FOTO SAMPUL BARU -->
+                        <div>
+                            <label for="{{ form.foto_sampul.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Foto Sampul Halaman</label>
+                            {{ form.foto_sampul }}
+                            {% if profil_wo.foto_sampul %}
+                                <p class="text-xs text-gray-500 mt-1">Pilih file baru untuk mengganti foto sampul saat ini.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- --- BAGIAN GALERI BARU --- -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Galeri Portofolio</label>
+                        
+                        <!-- Tampilkan gambar yang sudah ada -->
+                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mb-4">
+                            {% for foto in profil_wo.galeri.all %}
+                                <img src="{{ foto.foto.url }}" alt="Portfolio" class="rounded-lg object-cover w-full h-24">
+                            {% empty %}
+                                <p class="text-sm text-gray-500 col-span-full">Belum ada foto galeri.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Form untuk unggah gambar baru -->
+                        <div class="mt-4 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                <p class="text-sm text-gray-600">Tarik dan lepas atau <label for="galeri-upload" class="cursor-pointer font-medium text-pink-600 hover:text-pink-500">pilih file</label> untuk menambah foto baru</p>
+                                <input id="galeri-upload" name="galeri_wo_foto" type="file" class="sr-only" multiple>
+                            </div>
+                        </div>
+                    </div>
+
+                        <!-- Tombol Aksi -->
+                        <div class="pt-4 text-right">
+                            <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg">
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
