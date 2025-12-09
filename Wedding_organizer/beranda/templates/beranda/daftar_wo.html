@@ -1,20 +1,12 @@
-{% comment %} beranda/templates/beranda/daftar_wo.html {% endcomment %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temukan Wedding Organizer - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Daftar Wedding Organizer - Wedding Organizer Samarinda</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
@@ -22,79 +14,109 @@
         .bg-primary-dark { background-color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
         .btn-primary:hover { background-color: #9D174D; }
-        .tag { background-color: #FCE7F3; color: #9D174D; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
-        .card-hover-effect { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .card-hover-effect:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .btn-outline { border: 1px solid #DB2777; color: #DB2777; transition: all 0.3s ease; }
+        .btn-outline:hover { background-color: #DB2777; color: white; }
+        .input-filter { border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
+        .input-filter:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
     </style>
 </head>
 <body>
-    <!-- Header Dinamis -->
+    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% url 'daftar_wo' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
+            <a href="{% url 'index' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
             <div class="hidden lg:flex items-center space-x-6">
                 <a href="{% url 'index' %}" class="text-gray-600 hover:text-pink-600">Beranda</a>
                 <a href="{% url 'daftar_wo' %}" class="text-pink-600 font-bold">Daftar WO</a>
+                <a href="{% url 'daftar_gedung' %}" class="text-gray-600 hover:text-pink-600">Daftar Gedung</a>
                 <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600">Status Pesanan</a>
             </div>
             <div class="flex items-center space-x-4">
-                <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
-                <a href="{% url 'edit_profil_customer' %}" class="text-gray-500 hover:text-primary-dark"><i data-feather="user"></i></a>
+                <span class="text-gray-700 hidden sm:block">Halo, {{ user.username }}!</span>
                 <form action="{% url 'logout' %}" method="post" class="inline">
-    {% csrf_token %}
-    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
-        <i data-feather="log-out"></i>
-    </button>
-</form>
+                    {% csrf_token %}
+                    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
+                        <i data-feather="log-out"></i>
+                    </button>
+                </form>
             </div>
         </nav>
     </header>
 
     <main class="container mx-auto p-6 md:p-10">
-        <!-- Judul & Pencarian -->
-        <section class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-serif-display text-primary-dark">Temukan Wedding Organizer Impian Anda</h1>
-            <p class="text-gray-500 mt-2 max-w-2xl mx-auto">Jelajahi para profesional terbaik yang siap mewujudkan hari spesial Anda.</p>
-        </section>
+        <!-- Judul & Deskripsi -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-serif-display text-primary-dark">Partner Wedding Organizer</h1>
+            <p class="text-gray-500 mt-3 max-w-2xl mx-auto">Temukan perencana pernikahan profesional terbaik untuk mewujudkan hari bahagiamu.</p>
+        </div>
 
-        <
-
-        <!-- Daftar WO Dinamis -->
-        <section class="space-y-8">
-            {% for wo in profil_wos %}
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row card-hover-effect">
-                <div class="md:w-1/3">
-                    {% if wo.logo %}
-                        <img src="{{ wo.logo.url }}" alt="Logo {{ wo.nama_brand }}" class="w-full h-64 md:h-full object-cover">
-                    {% else %}
-                        <img src="https://placehold.co/400x400/F9A8D4/831843?text={{ wo.nama_brand|slice:':1' }}" alt="WO 1" class="w-full h-64 md:h-full object-cover">
-                    {% endif %}
+        <!-- Filter Bar -->
+        <div class="bg-white p-4 rounded-xl shadow-md mb-8 sticky top-24 z-40 max-w-3xl mx-auto">
+            <form method="GET" action="{% url 'daftar_wo' %}">
+                <div class="flex gap-4 items-center">
+                    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Cari nama Wedding Organizer..." class="input-filter flex-grow">
+                    <button type="submit" class="btn-primary font-bold py-2 px-6 rounded-lg whitespace-nowrap">
+                        Cari WO
+                    </button>
                 </div>
-                <div class="md:w-2/3 p-6 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-2xl font-bold font-serif-display text-primary-dark">{{ wo.nama_brand }}</h3>
-                            <div class="flex items-center space-x-1 text-yellow-500">
-                                <i data-feather="star" class="w-5 h-5 fill-current"></i>
-                                <span class="font-bold text-gray-700">4.9</span> <!-- Rating masih statis -->
-                            </div>
-                        </div>
-                        <p class="text-gray-500 text-sm mb-3 flex items-center"><i data-feather="map-pin" class="w-4 h-4 mr-2"></i>{{ wo.alamat|truncatewords:3 }}</p>
-                        
-                        <p class="text-gray-600 mb-4 text-sm leading-relaxed">{{ wo.deskripsi|truncatewords:25 }}</p>
+            </form>
+        </div>
+
+        <!-- Daftar WO -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            {% for wo in profil_wos %}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
+                <!-- Cover Image -->
+                <div class="h-40 bg-gradient-to-r from-pink-400 to-purple-500 flex items-center justify-center">
+                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl font-bold text-pink-600 shadow-lg">
+                        {{ wo.nama_brand|slice:":1" }}
                     </div>
-                    <div class="text-right mt-4">
-                        <a href="{% url 'detail_wo' wo.user.id %}" class="btn-primary font-semibold py-2 px-6 rounded-lg">Lihat Profil</a>
+                </div>
+
+                <div class="p-6 flex-grow flex flex-col">
+                    <h3 class="text-2xl font-serif-display text-primary-dark text-center mb-2">{{ wo.nama_brand }}</h3>
+                    
+                    <div class="flex justify-center items-center mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                            <i data-feather="check-circle" class="w-3 h-3 mr-1"></i> Verified Partner
+                        </span>
                     </div>
+
+                    <p class="text-gray-500 text-sm text-center mb-6 flex-grow">
+                        {{ wo.deskripsi|default:"Siap membantu mewujudkan pernikahan impian Anda dengan pelayanan terbaik."|truncatechars:100 }}
+                    </p>
+                    
+                    <!-- INFO STATISTIK: Paket & Gedung -->
+                    <div class="flex justify-between items-center text-sm text-gray-700 border-t pt-4 mb-4">
+                        <span class="flex items-center">
+                            <i data-feather="archive" class="w-4 h-4 mr-2 text-pink-500"></i>
+                            {{ wo.active_paket_count }} Paket
+                        </span>
+                        <!-- INI BAGIAN BARU: Menampilkan Jumlah Gedung -->
+                        <span class="flex items-center">
+                            <i data-feather="home" class="w-4 h-4 mr-2 text-pink-500"></i>
+                            {{ wo.jumlah_gedung }} Gedung
+                        </span>
+                    </div>
+                    
+                    <a href="{% url 'detail_wo' wo.user.id %}" class="w-full btn-outline font-semibold py-2 px-4 rounded-lg inline-block text-center mt-auto">
+                        Lihat Profil & Paket
+                    </a>
                 </div>
             </div>
             {% empty %}
-            <div class="bg-white text-center p-10 rounded-xl shadow-lg">
-                <h3 class="text-xl font-bold text-gray-700">Belum Ada Wedding Organizer</h3>
-                <p class="text-gray-500 mt-2">Saat ini belum ada WO yang terdaftar di platform kami.</p>
+            <div class="col-span-3 text-center py-12">
+                <div class="inline-block p-4 rounded-full bg-pink-50 mb-4">
+                    <i data-feather="search" class="w-10 h-10 text-pink-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Tidak ada Wedding Organizer ditemukan</h3>
+                <p class="text-gray-500 mt-2">Coba kata kunci lain.</p>
+                <a href="{% url 'daftar_wo' %}" class="inline-block mt-4 text-pink-600 hover:underline font-semibold">Lihat Semua WO</a>
             </div>
             {% endfor %}
-        </section>
+
+        </div>
     </main>
 
     <script>

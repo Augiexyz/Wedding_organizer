@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
+    
+    <!-- Tailwind, Fonts, Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* Style kustom Anda */
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .bg-primary-dark { background-color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .btn-outline-danger { color: #DC2626; border: 1px solid #FCA5A5; transition: all 0.3s ease; }
+        .btn-outline-danger:hover { background-color: #FEE2E2; border-color: #DC2626; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <nav>
+                <ul class="space-y-4">
+                    <!-- Link Dashboard (tidak aktif) -->
+                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
+                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                                <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+                            </button>
+                        </form>
+                    </li>   
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="flex-1 p-6 md:p-10">
+            <header class="mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-serif-display text-primary-dark">{{ page_title }}</h2>
+                    <p class="text-gray-500 mt-1">Atur daftar gedung yang Anda tawarkan kepada pelanggan.</p>
+                </div>
+            </header>
+
+            <!-- Menampilkan pesan sukses/error dari views.py -->
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg
+                            {% if message.tags == 'success' %} bg-green-100 text-green-800
+                            {% elif message.tags == 'error' %} bg-red-100 text-red-800
+                            {% else %} bg-blue-100 text-blue-800
+                            {% endif %}"
+                            role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Daftar Gedung -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                {% for gedung in all_gedung %}
+                <div class="bg-white rounded-2xl shadow-lg flex flex-col">
+                    {% if gedung.foto_gedung %}
+                    <img src="{{ gedung.foto_gedung.url }}" alt="{{ gedung.nama_gedung }}" class="w-full h-56 object-cover rounded-t-2xl">
+                    {% else %}
+                    <img src="https://placehold.co/400x224/FDF2F8/831843?text=Foto+Gedung" alt="Placeholder" class="w-full h-56 object-cover rounded-t-2xl">
+                    {% endif %}
+
+                    <div class="p-6 flex-grow">
+                        <h3 class="text-xl font-bold text-primary-dark">{{ gedung.nama_gedung }}</h3>
+                        <p class="text-gray-500 text-sm mt-1">{{ gedung.lokasi }}</p>
+                        <p class="text-2xl font-bold text-pink-600 my-2">Rp {{ gedung.harga_sewa|floatformat:0 }}</p>
+                        <ul class="text-sm text-gray-500 space-y-1">
+                            <li class="flex items-center"><i data-feather="layers" class="w-4 h-4 mr-2 text-gray-400"></i>Kategori: {{ gedung.get_kategori_display }}</li>
+                            <li class="flex items-center"><i data-feather="users" class="w-4 h-4 mr-2 text-gray-400"></i>{{ gedung.kapasitas }}</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 flex justify-end space-x-3 rounded-b-2xl">
+                        
+                        <!-- === PERUBAHAN LANGKAH 3 === -->
+                        <!-- Tombol Edit sekarang MENGARAH KE URL edit_gedung -->
+                        <a href="{% url 'edit_gedung' gedung.id %}" class="font-semibold text-gray-600 hover:text-black p-2 rounded-md transition" title="Edit Gedung">
+                            <i data-feather="edit-2" class="w-5 h-5"></i>
+                        </a>
+                        <!-- === BATAS PERUBAHAN === -->
+                        
+                        <!-- Tombol Hapus (Membuka Modal) -->
+                        <button type="button" 
+                                data-id="{{ gedung.id }}" 
+                                data-name="{{ gedung.nama_gedung }}"
+                                class="open-delete-modal font-semibold btn-outline-danger p-2 rounded-md" 
+                                title="Hapus Gedung">
+                            <i data-feather="trash-2" class="w-5 h-5"></i>
+                        </button>
+
+                    </div>
+                </div>
+                {% endfor %}
+                <!-- BATAS LOOP -->
+
+                <!-- Kartu Tambah Gedung -->
+                <a href="{% url 'tambah_gedung' %}" class="border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-pink-400 hover:text-pink-600 transition-all min-h-[300px]">
+                    <div class="text-center">
+                        <i data-feather="plus-circle" class="w-12 h-12 mx-auto"></i>
+                        <p class="mt-2 font-semibold">Tambah Gedung Baru</p>
+                    </div>
+                </a>
+
+            </div> <!-- Penutup grid -->
+
+            <!-- HTML MODAL POP-UP -->
+            <div id="deleteModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full m-4">
+                    <div class="text-center">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                            <i data-feather="trash-2" class="h-6 w-6 text-red-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-serif-display text-primary-dark mt-4">Konfirmasi Hapus</h3>
+                        <div class="mt-2">
+                            <p class="text-gray-600" id="modalDeleteText">
+                                Apakah Anda yakin ingin menghapus gedung ini?
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Hapus Sebenarnya ada di sini -->
+                    <form id="modalDeleteForm" method="POST" action="" class="mt-8">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Tombol Batal -->
+                            <button type="button" id="modalCancelButton" class="w-full py-3 px-4 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition">
+                                Batal
+                            </button>
+                            <!-- Tombol Hapus (Konfirmasi) -->
+                            <button type="submit" class="w-full py-3 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition">
+                                Ya, Hapus
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div> <!-- Penutup <div class="flex"> -->
+
+    <script>
+        feather.replace();
+    </script>
+
+    <!-- JAVASCRIPT UNTUK MODAL -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteModal = document.getElementById('deleteModal');
+            const modalDeleteText = document.getElementById('modalDeleteText');
+            const modalDeleteForm = document.getElementById('modalDeleteForm');
+            const modalCancelButton = document.getElementById('modalCancelButton');
+            
+            // 1. Dapatkan SEMUA tombol hapus di setiap kartu
+            const openModalButtons = document.querySelectorAll('.open-delete-modal');
+            
+            openModalButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Ambil data dari tombol
+                    const gedungId = button.dataset.id;
+                    const gedungName = button.dataset.name;
+                    
+                    // Buat URL action untuk form
+                    const deleteUrl = `/organizer/hapus-gedung/${gedungId}/`; 
+                    
+                    // Masukkan data ke dalam modal
+                    modalDeleteText.innerHTML = `Apakah Anda yakin ingin menghapus "<strong>${gedungName}</strong>"?<br>Tindakan ini tidak dapat dibatalkan.`;
+                    modalDeleteForm.action = deleteUrl;
+                    
+                    // Tampilkan modal
+                    deleteModal.classList.remove('hidden');
+                });
+            });
+            
+            // 2. Fungsi untuk menutup modal (jika klik Batal)
+            modalCancelButton.addEventListener('click', () => {
+                deleteModal.classList.add('hidden');
+            });
+            
+            // 3. Fungsi untuk menutup modal (jika klik di luar area modal)
+            deleteModal.addEventListener('click', (event) => {
+                if (event.target === deleteModal) {
+                    deleteModal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

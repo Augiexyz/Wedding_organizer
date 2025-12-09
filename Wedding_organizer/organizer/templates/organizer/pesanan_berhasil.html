@@ -1,97 +1,70 @@
-{% comment %} organizer/templates/organizer/pesanan_berhasil.html {% endcomment %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesanan Berhasil - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
-        .text-primary-dark { color: #831843; }
-        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
-        .btn-primary:hover { background-color: #9D174D; }
-        .btn-outline {
-            background-color: transparent;
-            color: #DB2777;
-            border: 1px solid #DB2777;
-            transition: all 0.3s ease;
-        }
-        .btn-outline:hover {
-            background-color: #DB2777;
-            color: white;
-        }
+        .bg-primary-dark { background-color: #831843; }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% url 'daftar_wo' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
-            <div class="hidden lg:flex items-center space-x-6">
-                <a href="{% url 'daftar_wo' %}" class="text-pink-600 font-bold">Daftar WO</a>
-                <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600">Status Pesanan</a>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
-                <a href="{% url 'edit_profil_customer' %}" class="text-gray-500 hover:text-primary-dark"><i data-feather="user"></i></a>
-                <form action="{% url 'logout' %}" method="post" class="inline">
-    {% csrf_token %}
-    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
-        <i data-feather="log-out"></i>
-    </button>
-</form>
-            </div>
-        </nav>
-    </header>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <main class="container mx-auto p-6 md:p-10 flex items-center justify-center" style="min-height: calc(100vh - 80px);">
-        <div class="max-w-2xl w-full bg-white p-8 md:p-12 rounded-2xl shadow-lg text-center">
-            <div class="mx-auto bg-green-100 rounded-full w-20 h-20 flex items-center justify-center">
-                <i data-feather="check" class="w-12 h-12 text-green-600"></i>
-            </div>
-            
-            <h1 class="text-4xl font-serif-display text-primary-dark mt-6">Pesanan Anda Berhasil Dikirim!</h1>
-            <p class="text-gray-500 mt-2">Terima kasih telah melakukan pemesanan melalui Wedding Organizer Samarinda.</p>
-            
-            <div class="text-left bg-gray-50 p-6 rounded-lg my-8">
-                <h3 class="font-bold text-lg text-gray-800 mb-4">Apa langkah selanjutnya?</h3>
-                <ul class="space-y-3 text-gray-600">
-                    <li class="flex items-start">
-                        <span class="font-bold text-pink-500 mr-3">1.</span>
-                        <span>Tim dari <strong>{{ pesanan.paket.wo.profilwo.nama_brand }}</strong> akan segera meninjau detail pesanan Anda.</span>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="font-bold text-pink-500 mr-3">2.</span>
-                        <span>Anda akan dihubungi melalui Telepon atau WhatsApp dalam waktu <strong>1x24 jam</strong> untuk konfirmasi ketersediaan jadwal.</span>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="font-bold text-pink-500 mr-3">3.</span>
-                        <span>Anda dapat memantau status pesanan Anda kapan saja melalui halaman <strong>Status Pesanan</strong>.</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="{% url 'status_pesanan' %}" class="btn-primary w-full sm:w-auto font-semibold py-3 px-6 rounded-lg">
-                    Lihat Status Pesanan
-                </a>
-                <a href="{% url 'daftar_wo' %}" class="btn-outline w-full sm:w-auto font-semibold py-3 px-6 rounded-lg">
-                    Kembali ke Daftar WO
-                </a>
-            </div>
+    <div class="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-10 relative">
+        
+        <!-- Dekorasi Latar Belakang -->
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-400 to-purple-500"></div>
+
+        <!-- Ikon Sukses Animasi -->
+        <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-100 mb-6 animate-bounce">
+            <i data-feather="check" class="h-12 w-12 text-green-600"></i>
         </div>
-    </main>
+
+        <h2 class="text-3xl font-serif-display font-bold text-gray-900 mb-2">Pesanan Diterima!</h2>
+        <p class="text-gray-500 mb-8">Terima kasih telah mempercayakan momen spesial Anda kepada kami.</p>
+
+        <!-- Kartu Detail Ringkas -->
+        <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left border border-gray-100">
+            <div class="flex justify-between mb-3">
+                <span class="text-sm text-gray-500">ID Pesanan</span>
+                <span class="text-sm font-mono font-bold text-gray-800">#{{ pesanan.id }}</span>
+            </div>
+            <div class="flex justify-between mb-3">
+                <span class="text-sm text-gray-500">Paket</span>
+                <span class="text-sm font-bold text-primary-dark">{{ pesanan.paket.nama_paket }}</span>
+            </div>
+            <div class="flex justify-between mb-3">
+                <span class="text-sm text-gray-500">Tanggal Acara</span>
+                <span class="text-sm font-medium text-gray-800">{{ pesanan.tgl_acara|date:"d F Y" }}</span>
+            </div>
+            
+            {% if pesanan.gedung_dipilih %}
+            <div class="flex justify-between border-t border-gray-200 pt-3 mt-3">
+                <span class="text-sm text-gray-500">Gedung</span>
+                <span class="text-sm font-bold text-pink-600">{{ pesanan.gedung_dipilih.nama_gedung }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="space-y-3">
+            <a href="{% url 'status_pesanan' %}" class="block w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-pink-200">
+                Lihat Status Pesanan
+            </a>
+            <a href="{% url 'index' %}" class="block w-full bg-white hover:bg-gray-50 text-gray-600 font-semibold py-3 px-4 rounded-xl transition border border-gray-200">
+                Kembali ke Beranda
+            </a>
+        </div>
+
+        <p class="text-xs text-gray-400 mt-8">
+            Pihak WO akan segera menghubungi Anda melalui WhatsApp untuk konfirmasi lebih lanjut.
+        </p>
+    </div>
 
     <script>
         feather.replace();

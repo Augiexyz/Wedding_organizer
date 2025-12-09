@@ -1,21 +1,12 @@
-{% comment %} organizer/templates/organizer/kelola_paket.html {% endcomment %}
-{% load humanize %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Paket - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS -->
+    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
@@ -23,11 +14,10 @@
         .bg-primary-dark { background-color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
         .btn-primary:hover { background-color: #9D174D; }
-        .btn-outline-danger { color: #DC2626; border: 1px solid #FCA5A5; transition: all 0.3s ease; }
-        .btn-outline-danger:hover { background-color: #FEE2E2; border-color: #DC2626; }
     </style>
 </head>
 <body class="min-h-screen">
+
     <div class="flex">
         <!-- Sidebar -->
         <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
@@ -37,15 +27,16 @@
                     <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
                     <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
                     <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
                     <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
                     <li>
                         <form action="{% url 'logout' %}" method="post" class="w-full">
                             {% csrf_token %}
-                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full mt-8">
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
                                 <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
                             </button>
                         </form>
-                    </li>
+                    </li>   
                 </ul>
             </nav>
         </aside>
@@ -54,81 +45,108 @@
         <main class="flex-1 p-6 md:p-10">
             <header class="mb-8 flex justify-between items-center">
                 <div>
-                    <h2 class="text-3xl font-serif-display text-primary-dark">Kelola Paket</h2>
-                    <p class="text-gray-500 mt-1">Atur paket layanan yang Anda tawarkan kepada pelanggan.</p>
+                    <h2 class="text-3xl font-serif-display text-primary-dark">{{ page_title }}</h2>
+                    <p class="text-gray-500 mt-1">Kelola katalog paket pernikahan Anda.</p>
                 </div>
-                <a href="{% url 'buat_paket' %}" class="btn-primary font-semibold py-2 px-5 rounded-lg shadow-md flex items-center">
-                    <i data-feather="plus" class="w-5 h-5 mr-2"></i>Buat Paket Baru
-                </a>
+                <div>
+                    <a href="{% url 'buat_paket' %}" class="btn-primary font-semibold py-2 px-5 rounded-lg shadow flex items-center">
+                        <i data-feather="plus" class="w-5 h-5 mr-2"></i>
+                        Buat Paket Baru
+                    </a>
+                </div>
             </header>
 
-            <!-- Daftar Paket -->
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg bg-green-100 text-green-800 border border-green-200">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Grid Paket -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {% for paket in pakets %}
-                <div class="bg-white rounded-2xl shadow-lg flex flex-col">
-                    <div class="p-6 flex-grow">
-                        <h3 class="text-xl font-bold text-primary-dark">{{ paket.nama_paket }}</h3>
-                        <p class="text-2xl font-bold text-pink-600 my-2">Rp {{ paket.harga|intcomma }}</p>
-                        <div class="prose prose-sm text-gray-600 mb-4">
-                            {{ paket.deskripsi|truncatewords:20|linebreaks }}
-                        </div>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                    
+                    <!-- Gambar Paket -->
+                    <div class="h-48 overflow-hidden bg-gray-200 relative">
+                        {% if paket.foto %}
+                            <img src="{{ paket.foto.url }}" alt="{{ paket.nama_paket }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <img src="https://placehold.co/400x250/FDF2F8/831843?text=Paket+Wedding" alt="Placeholder" class="w-full h-full object-cover">
+                        {% endif %}
+                        
+                        <!-- Badge Status -->
+                        {% if paket.is_active %}
+                            <span class="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">Aktif</span>
+                        {% else %}
+                            <span class="absolute top-3 right-3 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full">Non-Aktif</span>
+                        {% endif %}
                     </div>
-                    <div class="bg-gray-50 p-4 flex justify-end space-x-3 rounded-b-2xl">
-                        <a href="{% url 'edit_paket' paket.id %}" class="font-semibold text-gray-600 hover:text-black p-2 rounded-md transition"><i data-feather="edit-2" class="w-5 h-5"></i></a>
-                        <button onclick="openDeleteModal('{{ paket.nama_paket }}', '{% url 'hapus_paket' paket.id %}')" class="font-semibold btn-outline-danger p-2 rounded-md"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+
+                    <div class="p-6 flex-grow flex flex-col">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-primary-dark">{{ paket.nama_paket }}</h3>
+                        </div>
+
+                        <!-- --- BAGIAN INFO GEDUNG BARU --- -->
+                        <div class="mb-4">
+                            {% if paket.gedung %}
+                                <div class="inline-flex items-center px-3 py-1 rounded-full bg-pink-50 text-pink-700 text-sm font-medium border border-pink-100">
+                                    <i data-feather="map-pin" class="w-3 h-3 mr-2"></i>
+                                    {{ paket.gedung.nama_gedung }}
+                                    <span class="ml-1 text-xs bg-white px-1 rounded border border-pink-200">
+                                        {{ paket.gedung.get_kategori_display }}
+                                    </span>
+                                </div>
+                            {% else %}
+                                <div class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-medium">
+                                    <i data-feather="info" class="w-3 h-3 mr-2"></i>
+                                    Tanpa Gedung / Venue Bebas
+                                </div>
+                            {% endif %}
+                        </div>
+                        <!-- ------------------------------- -->
+
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">{{ paket.deskripsi }}</p>
+                        
+                        <div class="border-t border-gray-100 pt-4 mt-auto flex justify-between items-center">
+                            <span class="text-lg font-bold text-gray-800">Rp {{ paket.harga|floatformat:0 }}</span>
+                            
+                            <div class="flex space-x-2">
+                                <a href="{% url 'edit_paket' paket.id %}" class="text-gray-500 hover:text-blue-600 p-2 transition" title="Edit">
+                                    <i data-feather="edit-2" class="w-5 h-5"></i>
+                                </a>
+                                <!-- Tombol hapus (sederhana) -->
+                                <form method="POST" action="{% url 'hapus_paket' paket.id %}" onsubmit="return confirm('Yakin ingin menghapus paket ini?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-gray-500 hover:text-red-600 p-2 transition" title="Hapus">
+                                        <i data-feather="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-gray-500 md:col-span-3 text-center">Anda belum memiliki paket. Silakan buat paket baru.</p>
-                {% endfor %}
-
-                <!-- Kartu Tambah Paket -->
-                <a href="{% url 'buat_paket' %}" class="border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-pink-400 hover:text-pink-600 transition-all min-h-[200px]">
-                    <div class="text-center">
-                        <i data-feather="plus-circle" class="w-12 h-12 mx-auto"></i>
-                        <p class="mt-2 font-semibold">Buat Paket Baru</p>
+                <div class="col-span-3 text-center py-12">
+                    <div class="inline-block p-4 rounded-full bg-gray-100 mb-4">
+                        <i data-feather="package" class="w-8 h-8 text-gray-400"></i>
                     </div>
-                </a>
+                    <h3 class="text-lg font-medium text-gray-900">Belum ada paket</h3>
+                    <p class="text-gray-500 mt-1">Mulai buat paket pernikahan pertama Anda sekarang.</p>
+                    <a href="{% url 'buat_paket' %}" class="inline-block mt-4 text-pink-600 font-semibold hover:underline">Buat Paket Baru &rarr;</a>
+                </div>
+                {% endfor %}
             </div>
         </main>
     </div>
 
-    <!-- Modal Konfirmasi Hapus -->
-    <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 text-center">
-            <h3 class="text-2xl font-bold font-serif-display text-gray-800">Hapus Paket?</h3>
-            <p class="text-gray-600 mt-2 mb-6">Apakah Anda yakin ingin menghapus paket <strong id="paket-name-to-delete"></strong>? Tindakan ini tidak dapat diurungkan.</p>
-            <form id="delete-form" method="POST" class="w-full">
-                {% csrf_token %}
-                <div class="flex flex-col space-y-3">
-                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg">
-                        Ya, Hapus
-                    </button>
-                    <button type="button" onclick="closeDeleteModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg">
-                        Batal
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         feather.replace();
-
-        const deleteModal = document.getElementById('delete-modal');
-        const deleteForm = document.getElementById('delete-form');
-        const paketNameToDelete = document.getElementById('paket-name-to-delete');
-
-        function openDeleteModal(paketName, actionUrl) {
-            paketNameToDelete.textContent = `"${paketName}"`;
-            deleteForm.action = actionUrl;
-            deleteModal.classList.remove('hidden');
-        }
-
-        function closeDeleteModal() {
-            deleteModal.classList.add('hidden');
-        }
     </script>
 </body>
 </html>
-```

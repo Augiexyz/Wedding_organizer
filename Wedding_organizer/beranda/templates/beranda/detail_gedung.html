@@ -1,0 +1,156 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ gedung.nama_gedung }} - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: 0.3s; }
+        .btn-primary:hover { background-color: #9D174D; }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <!-- Header -->
+    <div class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="{% url 'daftar_gedung' %}" class="text-gray-600 hover:text-pink-600 flex items-center transition font-medium">
+                <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
+                Kembali ke Daftar Gedung
+            </a>
+            <a href="{% url 'index' %}" class="text-xl font-serif-display font-bold text-primary-dark">Wedding Organizer Samarinda</a>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-6 py-8">
+        
+        <!-- Bagian Atas: Judul & Harga -->
+        <div class="flex flex-col md:flex-row justify-between md:items-end mb-6">
+            <div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="bg-pink-100 text-pink-800 text-xs font-bold px-3 py-1 rounded-full">
+                        Kategori {{ gedung.get_kategori_display }}
+                    </span>
+                    <span class="text-gray-500 text-sm flex items-center">
+                        <i data-feather="map-pin" class="w-3 h-3 mr-1"></i> {{ gedung.lokasi }}
+                    </span>
+                </div>
+                <h1 class="text-4xl font-serif-display text-gray-900">{{ gedung.nama_gedung }}</h1>
+                <p class="text-gray-600 mt-1">
+                    Dikelola oleh: <a href="{% url 'detail_wo' gedung.wo.id %}" class="text-pink-600 hover:underline font-semibold">{{ gedung.wo.profilwo.nama_brand }}</a>
+                </p>
+            </div>
+            <div class="mt-4 md:mt-0 text-left md:text-right">
+                <p class="text-sm text-gray-500">Mulai dari</p>
+                <p class="text-3xl font-bold text-primary-dark">Rp {{ gedung.harga_sewa|intcomma }}</p>
+            </div>
+        </div>
+
+        <!-- Gambar Utama -->
+        <div class="rounded-3xl overflow-hidden shadow-2xl h-96 bg-gray-200 mb-10 relative group">
+            {% if gedung.foto_gedung %}
+                <img src="{{ gedung.foto_gedung.url }}" alt="{{ gedung.nama_gedung }}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                    <span>Tidak ada foto tersedia</span>
+                </div>
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            
+            <!-- Kolom Kiri: Deskripsi & Fasilitas -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Statistik Cepat -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-blue-50 p-3 rounded-full mr-4">
+                            <i data-feather="users" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold">Kapasitas</p>
+                            <p class="font-semibold text-gray-800">{{ gedung.kapasitas }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-purple-50 p-3 rounded-full mr-4">
+                            <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold">Luas / Tipe</p>
+                            <p class="font-semibold text-gray-800">Kategori {{ gedung.kategori }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Tentang Gedung</h3>
+                    <div class="prose text-gray-600 leading-relaxed">
+                        {{ gedung.deskripsi|linebreaks }}
+                    </div>
+                </div>
+
+                <!-- Fasilitas -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Fasilitas Tersedia</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-2">
+                        {% if gedung.fasilitas %}
+                            {% for fas in gedung.fasilitas.splitlines %}
+                                <div class="flex items-center text-gray-700">
+                                    <i data-feather="check-circle" class="w-4 h-4 text-green-500 mr-3"></i>
+                                    {{ fas }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-gray-500 italic">Informasi fasilitas belum ditambahkan.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Kolom Kanan: Call to Action -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-lg border-t-4 border-pink-600 sticky top-24">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Tertarik dengan gedung ini?</h3>
+                    <p class="text-gray-600 mt-1">
+                        Dikelola oleh: 
+                        {% if gedung.wo %}
+                            <a href="{% url 'detail_wo' gedung.wo.id %}" class="text-pink-600 hover:underline font-semibold">
+                                {{ gedung.wo.profilwo.nama_brand|default:gedung.wo.username }}
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400 italic">Info WO Tidak Tersedia (User Dihapus)</span>
+                        {% endif %}
+                    </p>
+                    <!-- Tombol ke Profil WO untuk lihat paket -->
+                    <a href="{% url 'detail_wo' gedung.wo.id %}" class="w-full btn-primary py-3 px-4 rounded-xl font-bold shadow-lg shadow-pink-200 flex justify-center items-center mb-3">
+                        Lihat Paket Wedding
+                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </a>
+                    
+                    <div class="text-center">
+                        <p class="text-xs text-gray-400">Lokasi: {{ gedung.lokasi }}</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

@@ -16,3 +16,4 @@ urlpatterns = [
 # Bagian untuk media files tetap di sini
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    

@@ -1,58 +1,25 @@
-{% comment %} organizer/templates/organizer/buat_paket.html {% endcomment %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buat Paket Baru - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS -->
+    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    
-    <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
-        /* Custom styles yang sama dengan tema utama */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #FDF2F8; /* Latar belakang pink lebih lembut */
-        }
-        .font-serif-display {
-            font-family: 'Playfair Display', serif;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
         .bg-primary-dark { background-color: #831843; }
-        .btn-primary {
-            background-color: #DB2777;
-            color: white;
-            transition: background-color 0.3s ease;
-        }
-        .btn-primary:hover {
-            background-color: #9D174D;
-        }
-        .input-field {
-            border: 1px solid #ddd;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            transition: all 0.2s ease;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #DB2777;
-            box-shadow: 0 0 0 2px #F9A8D4;
-        }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
+        .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
+        .form-error { color: #DC2626; font-size: 0.875rem; margin-top: 0.25rem; }
     </style>
 </head>
 <body class="min-h-screen">
-
-    <!-- Layout Utama dengan Sidebar -->
     <div class="flex">
         <!-- Sidebar -->
         <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
@@ -60,68 +27,95 @@
             <nav>
                 <ul class="space-y-4">
                     <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
-                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="kelola_pesanan" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
                     <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
-                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
-<li>
-    <form action="{% url 'logout' %}" method="post" class="w-full">
-        {% csrf_token %}
-        <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
-            <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
-        </button>
-    </form>
-</li>                </ul>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
+                    <li><a href="edit_profil_wo" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                                <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+                            </button>
+                        </form>
+                    </li>                 
+                </ul>
             </nav>
         </aside>
 
-        <!-- Konten Utama -->
         <main class="flex-1 p-6 md:p-10">
             <header class="mb-8">
                 <a href="{% url 'kelola_paket' %}" class="text-pink-600 hover:underline font-semibold flex items-center mb-4">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
-                    Kembali ke Kelola Paket
+                    Kembali ke Daftar Paket
                 </a>
-                <h2 class="text-3xl font-serif-display text-primary-dark">Buat Paket Baru</h2>
-                <p class="text-gray-500 mt-1">Isi detail paket layanan yang ingin Anda tawarkan.</p>
+                <h2 class="text-3xl font-serif-display text-primary-dark">{{ page_title }}</h2>
+                <p class="text-gray-500 mt-1">Buat penawaran paket pernikahan menarik untuk calon pengantin.</p>
             </header>
             
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
                 <form method="POST" enctype="multipart/form-data" class="space-y-6">
                     {% csrf_token %}
-                    
+
+                    <!-- Nama Paket -->
                     <div>
-                        <label for="{{ form.nama_paket.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Paket</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.nama_paket.label }}</label>
                         {{ form.nama_paket }}
-                        {% for error in form.nama_paket.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        <div class="form-error">{{ form.nama_paket.errors }}</div>
                     </div>
 
+                    <!-- Harga -->
                     <div>
-                        <label for="{{ form.harga.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Harga Paket (Rp)</label>
-                        {{ form.harga }}
-                        {% for error in form.harga.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.harga.label }}</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm"></span>
+                            </div>
+                            {{ form.harga }} 
+                        </div>
+                        <div class="form-error">{{ form.harga.errors }}</div>
                     </div>
 
+                    <!-- KATEGORI GEDUNG (PERUBAHAN UTAMA DI SINI) -->
+                    <div class="bg-pink-50 p-4 rounded-lg border border-pink-100">
+                        <label class="block text-sm font-bold text-pink-800 mb-1 flex items-center">
+                            <i data-feather="layers" class="w-4 h-4 mr-2"></i>
+                            {{ form.kategori_gedung.label }}
+                        </label>
+                        {{ form.kategori_gedung }}
+                        <p class="text-xs text-gray-500 mt-2">
+                            <i data-feather="info" class="w-3 h-3 inline mr-1"></i>
+                            Tentukan fasilitas gedung. Pelanggan akan memilih gedung spesifik sesuai kategori ini (S, M, L) nanti.
+                        </p>
+                        <div class="form-error">{{ form.kategori_gedung.errors }}</div>
+                    </div>
+
+                    <!-- Deskripsi -->
                     <div>
-                        <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Layanan yang Termasuk</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.deskripsi.label }}</label>
                         {{ form.deskripsi }}
-                        <p class="text-xs text-gray-500 mt-1">Gunakan tanda hubung (-) atau angka untuk membuat daftar.</p>
-                        {% for error in form.deskripsi.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        <div class="form-error">{{ form.deskripsi.errors }}</div>
                     </div>
 
+                    <!-- Foto Paket -->
                     <div>
-                        <label for="{{ form.foto.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Foto Utama Paket</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Foto Utama Paket</label>
                         {{ form.foto }}
-                        {% for error in form.foto.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        <div class="form-error">{{ form.foto.errors }}</div>
                     </div>
 
+                    <!-- Status Aktif -->
                     <div class="flex items-center">
                         {{ form.is_active }}
-                        <label for="{{ form.is_active.id_for_label }}" class="ml-3 block text-sm font-medium text-gray-700">Aktifkan paket ini</label>
+                        <label class="ml-2 block text-sm text-gray-900">
+                            Tampilkan Paket ini ke Pelanggan (Aktif)
+                        </label>
                     </div>
 
                     <!-- Tombol Aksi -->
-                    <div class="pt-4 text-right">
-                        <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-transform">
+                    <div class="pt-4 text-right border-t border-gray-100 mt-6">
+                        <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-transform flex items-center ml-auto">
+                            <i data-feather="check-circle" class="w-5 h-5 mr-2"></i>
                             Simpan Paket
                         </button>
                     </div>
@@ -129,7 +123,6 @@
             </div>
         </main>
     </div>
-
     <script>
         feather.replace();
     </script>

@@ -33,18 +33,19 @@
             <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
             <nav>
                 <ul class="space-y-4">
-                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
                     <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
-                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
                     <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
                     <li>
                         <form action="{% url 'logout' %}" method="post" class="w-full">
                             {% csrf_token %}
-                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full mt-8">
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
                                 <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
                             </button>
                         </form>
-                    </li>
+                    </li>   
                 </ul>
             </nav>
         </aside>

@@ -1,18 +1,16 @@
-# beranda/views.py
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from pengguna.models import ProfilWO # <-- Import ProfilWO
-from organizer.models import Paket
-from organizer.models import Pesanan
 from pengguna.models import ProfilWO
+from organizer.models import Paket, Pesanan, Gedung 
 from django.db.models import Count, Q, Min
 
 def index(request):
+    """
+    Halaman utama (Landing Page).
+    """
     profil_wos_unggulan = ProfilWO.objects.annotate(
-        active_paket_count=Count('user__paket', filter=Q(user__paket__is_active=True)),
-        # Mencari harga terendah dari paket yang aktif
-        min_price=Min('user__paket__harga', filter=Q(user__paket__is_active=True))
+        active_paket_count=Count('user__paket_wo', filter=Q(user__paket_wo__is_active=True)),
+        min_price=Min('user__paket_wo__harga', filter=Q(user__paket_wo__is_active=True))
     ).filter(
         active_paket_count__gt=0
     ).order_by('-user__date_joined')[:3]
@@ -24,39 +22,86 @@ def index(request):
 
 @login_required
 def daftar_wo_view(request):
-    # Pastikan hanya customer yang bisa mengakses halaman ini
+    """
+    Halaman daftar Wedding Organizer dengan fitur pencarian.
+    """
     if request.user.profil.role != 'customer':
-        return redirect('dashboard_wo') # Jika WO, arahkan ke dashboard mereka
+        return redirect('dashboard_wo')
 
-    # Ambil semua profil WO dari database
+    # Ambil semua WO yang punya setidaknya 1 paket aktif
     profil_wos = ProfilWO.objects.annotate(
-        active_paket_count=Count('user__paket', filter=Q(user__paket__is_active=True))
+        active_paket_count=Count('user__paket_wo', filter=Q(user__paket_wo__is_active=True)),
+        
+        # --- TAMBAHAN BARU: Hitung Jumlah Gedung ---
+        jumlah_gedung=Count('user__gedung_wo')
+        # -------------------------------------------
+        
     ).filter(
         active_paket_count__gt=0
     ).order_by('nama_brand')
 
+    # Logika Pencarian
+    query = request.GET.get('q')
+    if query:
+        profil_wos = profil_wos.filter(nama_brand__icontains=query)
+
     context = {
         'profil_wos': profil_wos,
+        'page_title': 'Partner Wedding Organizer Kami',
     }
     return render(request, 'beranda/daftar_wo.html', context)
 
+def daftar_gedung_view(request):
+    """
+    Halaman publik untuk menampilkan daftar semua gedung rekomendasi.
+    """
+    # PERBAIKAN DI SINI:
+    # Filter 'wo__isnull=False' artinya: Hanya ambil gedung yang kolom WO-nya TIDAK KOSONG.
+    gedungs = Gedung.objects.filter(wo__isnull=False).order_by('-created_at')
+
+    # Logika Pencarian
+    query = request.GET.get('q')
+    lokasi = request.GET.get('lokasi')
+    
+    if query:
+        gedungs = gedungs.filter(nama_gedung__icontains=query)
+    
+    if lokasi and lokasi != 'Filter Lokasi':
+        gedungs = gedungs.filter(lokasi__icontains=lokasi)
+
+    context = {
+        'gedungs': gedungs,
+        'page_title': 'Daftar Gedung Rekomendasi',
+    }
+    return render(request, 'beranda/daftar_gedung.html', context)
+
+
 @login_required
 def detail_wo_view(request, wo_id):
-    # Ambil profil WO berdasarkan ID user, atau tampilkan 404 jika tidak ada
+    """
+    Halaman detail profil WO, paket-paketnya, DAN gedung-gedungnya.
+    """
     profil_wo = get_object_or_404(ProfilWO, user__id=wo_id)
     
-    # Ambil semua paket yang aktif milik WO tersebut
+    # Ambil paket aktif
     pakets = Paket.objects.filter(wo=profil_wo.user, is_active=True)
+    
+    # --- TAMBAHAN BARU: Ambil gedung milik WO ini ---
+    gedungs = Gedung.objects.filter(wo=profil_wo.user).order_by('nama_gedung')
+    # ------------------------------------------------
 
     context = {
         'profil_wo': profil_wo,
         'pakets': pakets,
+        'gedungs': gedungs, # Kirim ke template
     }
     return render(request, 'beranda/detail_wo.html', context)
 
 @login_required
 def detail_paket_view(request, paket_id):
-    # Ambil paket berdasarkan ID, atau tampilkan halaman 404 jika tidak ada
+    """
+    Halaman detail satu paket spesifik.
+    """
     paket = get_object_or_404(Paket, id=paket_id)
     
     context = {
@@ -66,17 +111,14 @@ def detail_paket_view(request, paket_id):
 
 @login_required
 def status_pesanan_view(request):
-    # Pastikan hanya customer yang bisa mengakses
+    """
+    Halaman customer untuk melihat status pesanan mereka.
+    """
     if not hasattr(request.user, 'profil') or request.user.profil.role != 'customer':
         return redirect('index')
 
-    # Ambil semua pesanan milik customer ini
     semua_pesanan = Pesanan.objects.filter(customer=request.user).order_by('-tgl_pesan')
-
-    # Cari satu pesanan terbaru yang masih aktif
     pesanan_terbaru = semua_pesanan.filter(status__in=['menunggu', 'dikonfirmasi']).first()
-    
-    # Ambil sisa pesanan sebagai riwayat
     riwayat_pesanan = semua_pesanan.filter(status__in=['selesai', 'dibatalkan'])
 
     context = {
@@ -84,3 +126,16 @@ def status_pesanan_view(request):
         'riwayat_pesanan': riwayat_pesanan,
     }
     return render(request, 'beranda/status_pesanan.html', context)
+
+def detail_gedung_view(request, gedung_id):
+    """
+    Halaman detail untuk satu gedung spesifik.
+    """
+    # Ambil data gedung berdasarkan ID, atau error 404 jika tidak ketemu
+    gedung = get_object_or_404(Gedung, id=gedung_id)
+    
+    context = {
+        'gedung': gedung,
+        'page_title': f'Detail Gedung: {gedung.nama_gedung}',
+    }
+    return render(request, 'beranda/detail_gedung.html', context)

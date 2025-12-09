@@ -1,12 +1,9 @@
-{% comment %} organizer/templates/organizer/kelola_pesanan.html {% endcomment %}
-{% load humanize %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Pesanan - Wedding Organizer Samarinda</title>
-    <!-- ... (Semua link head Anda) ... -->
+    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
@@ -15,17 +12,11 @@
         .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
         .bg-primary-dark { background-color: #831843; }
-        .status-waiting { background-color: #FEF3C7; color: #92400E; }
-        .status-dikonfirmasi { background-color: #D1FAE5; color: #065F46; }
-        .status-dibatalkan { background-color: #FEE2E2; color: #991B1B; }
-        .status-selesai { background-color: #DBEAFE; color: #1E40AF; }
-        .tab-button { padding: 0.75rem 1.5rem; font-weight: 600; color: #4B5563; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
-        .tab-button.active, .tab-button:hover { color: #DB2777; border-bottom-color: #DB2777; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
     </style>
 </head>
 <body class="min-h-screen">
+
     <div class="flex">
         <!-- Sidebar -->
         <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
@@ -33,124 +24,150 @@
             <nav>
                 <ul class="space-y-4">
                     <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    
+                    <!-- Menu Aktif -->
                     <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    
                     <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
-                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
-<li>
-    <form action="{% url 'logout' %}" method="post" class="w-full">
-        {% csrf_token %}
-        <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
-            <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
-        </button>
-    </form>
-</li>                </ul>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
+                    <li><a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                                <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+                            </button>
+                        </form>
+                    </li> 
+                 </ul>
             </nav>
         </aside>
 
         <!-- Konten Utama -->
         <main class="flex-1 p-6 md:p-10">
             <header class="mb-8">
-                <h2 class="text-3xl font-serif-display text-primary-dark">Kelola Pesanan</h2>
-                <p class="text-gray-500 mt-1">Lihat dan kelola semua pesanan dari pelanggan Anda.</p>
+                <h2 class="text-3xl font-serif-display text-primary-dark">{{ page_title }}</h2>
+                <p class="text-gray-500 mt-1">Pantau pesanan masuk dan konfirmasi klien Anda.</p>
             </header>
 
-            <div class="bg-white rounded-2xl shadow-lg">
-                <!-- Navigasi Tab -->
-                <div class="border-b border-gray-200">
-                    <nav class="flex -mb-px" id="tabs">
-                        <button class="tab-button active" data-target="pesanan-masuk">Pesanan Masuk ({{ pesanan_masuk.count }})</button>
-                        <button class="tab-button" data-target="riwayat-pesanan">Riwayat Pesanan</button>
-                    </nav>
+            <!-- Pesanan Aktif -->
+            <div class="bg-white rounded-2xl shadow-lg mb-10 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800">Pesanan Aktif (Perlu Tindakan)</h3>
+                    <span class="bg-pink-100 text-pink-800 text-xs font-bold px-3 py-1 rounded-full">{{ pesanan_aktif.count }} Pesanan</span>
                 </div>
-
-                <!-- Konten Tab -->
-                <div class="p-6 md:p-8">
-                    <!-- Tab 1: Pesanan Masuk -->
-                    <div id="pesanan-masuk" class="tab-content active">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead>
-                                    <tr class="border-b-2 border-gray-200">
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Pelanggan</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Paket</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Tgl Acara</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Status</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <!-- ... (thead sama) ... -->
-                                <tbody>
-                                    {% for pesanan in pesanan_masuk %}
-                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                        <td class="py-4 px-4 font-medium">{{ pesanan.customer.get_full_name|default:pesanan.customer.username }}</td>
-                                        <td class="py-4 px-4">{{ pesanan.paket.nama_paket }}</td>
-                                        <td class="py-4 px-4">{{ pesanan.tgl_acara|date:"d M Y" }}</td>
-                                        <td class="py-4 px-4"><span class="px-3 py-1 text-xs font-medium rounded-full status-{{ pesanan.status }}">{{ pesanan.get_status_display }}</span></td>
-                                        <td class="py-4 px-4"><a href="{% url 'detail_pesanan' pesanan.id %}" class="text-pink-600 hover:underline font-semibold">Lihat Detail</a></td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr><td colspan="5" class="text-center py-10 text-gray-500">Tidak ada pesanan yang masuk saat ini.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Tab 2: Riwayat Pesanan -->
-                    <div id="riwayat-pesanan" class="tab-content">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead>
-                                    <tr class="border-b-2 border-gray-200">
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Pelanggan</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Paket</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Tgl Acara</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Status</th>
-                                        <th class="py-3 px-4 font-semibold text-gray-600">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <!-- ... (thead sama) ... -->
-                                <tbody>
-                                    {% for pesanan in riwayat_pesanan %}
-                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                        <td class="py-4 px-4 font-medium">{{ pesanan.customer.get_full_name|default:pesanan.customer.username }}</td>
-                                        <td class="py-4 px-4">{{ pesanan.paket.nama_paket }}</td>
-                                        <td class="py-4 px-4">{{ pesanan.tgl_acara|date:"d M Y" }}</td>
-                                        <td class="py-4 px-4"><span class="px-3 py-1 text-xs font-medium rounded-full status-{{ pesanan.status }}">{{ pesanan.get_status_display }}</span></td>
-                                        <td class="py-4 px-4"><a href="{% url 'detail_pesanan' pesanan.id %}" class="text-pink-600 hover:underline font-semibold">Lihat Detail</a></td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr><td colspan="5" class="text-center py-10 text-gray-500">Tidak ada riwayat pesanan.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm uppercase">
+                            <tr>
+                                <th class="px-6 py-4">ID & Tanggal</th>
+                                <th class="px-6 py-4">Pelanggan</th>
+                                <th class="px-6 py-4">Paket & Gedung</th>
+                                <th class="px-6 py-4">Tgl Acara</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for pesanan in pesanan_aktif %}
+                            <tr class="hover:bg-pink-50 transition">
+                                <td class="px-6 py-4">
+                                    <span class="font-mono font-bold text-pink-600">#{{ pesanan.id }}</span><br>
+                                    <span class="text-xs text-gray-400">{{ pesanan.tgl_pesan|date:"d M Y" }}</span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-gray-900">
+                                    {{ pesanan.nama_pasangan }}<br>
+                                    <span class="text-xs text-gray-500">{{ pesanan.telepon }}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="font-semibold">{{ pesanan.paket.nama_paket }}</span><br>
+                                    {% if pesanan.gedung_dipilih %}
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                                            🏢 {{ pesanan.gedung_dipilih.nama_gedung }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                            Tanpa Gedung
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    {{ pesanan.tgl_acara|date:"d M Y" }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if pesanan.status == 'menunggu' %}
+                                        <span class="status-badge bg-yellow-100 text-yellow-800">Menunggu Konfirmasi</span>
+                                    {% else %}
+                                        <span class="status-badge bg-blue-100 text-blue-800">Sedang Dipersiapkan</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="{% url 'detail_pesanan' pesanan.id %}" class="text-white bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded-lg text-sm font-bold shadow transition">
+                                        Lihat Detail
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                                    <i data-feather="inbox" class="w-10 h-10 mx-auto mb-2"></i>
+                                    Belum ada pesanan baru yang masuk.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
+            <!-- Riwayat Pesanan -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden opacity-90">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-600">Riwayat Pesanan (Selesai / Batal)</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm uppercase">
+                            <tr>
+                                <th class="px-6 py-4">ID</th>
+                                <th class="px-6 py-4">Pelanggan</th>
+                                <th class="px-6 py-4">Paket</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for pesanan in riwayat_pesanan %}
+                            <tr>
+                                <td class="px-6 py-4 font-mono text-gray-500">#{{ pesanan.id }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ pesanan.nama_pasangan }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ pesanan.paket.nama_paket }}</td>
+                                <td class="px-6 py-4">
+                                    {% if pesanan.status == 'selesai' %}
+                                        <span class="status-badge bg-green-100 text-green-800">Selesai</span>
+                                    {% else %}
+                                        <span class="status-badge bg-red-100 text-red-800">Dibatalkan</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="{% url 'detail_pesanan' pesanan.id %}" class="text-pink-600 hover:underline text-sm font-semibold">Detail</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-400 text-sm">Riwayat kosong.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
 
     <script>
         feather.replace();
-
-        // Script untuk fungsionalitas Tab
-        const tabs = document.getElementById('tabs');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabs.addEventListener('click', (event) => {
-            const targetButton = event.target.closest('button');
-            if (!targetButton) return;
-
-            // Nonaktifkan semua tombol dan konten
-            tabs.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Aktifkan tombol dan konten yang dipilih
-            targetButton.classList.add('active');
-            const targetContentId = targetButton.getAttribute('data-target');
-            document.getElementById(targetContentId).classList.add('active');
-        });
     </script>
 </body>
 </html>

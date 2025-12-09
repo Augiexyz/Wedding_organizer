@@ -24,7 +24,11 @@ urlpatterns = [
     path('pembayaran/<int:pesanan_id>/', views.halaman_pembayaran_view, name='halaman_pembayaran'),
     
     path('hapus-paket/<int:paket_id>/', views.hapus_paket_view, name='hapus_paket'),
+    path('kelola-gedung/', views.kelola_gedung, name='kelola_gedung'),
 
 
+    path('tambah-gedung/', views.tambah_gedung, name='tambah_gedung'),
+    path('hapus-gedung/<int:gedung_id>/', views.hapus_gedung, name='hapus_gedung'),
+    path('edit-gedung/<int:gedung_id>/', views.edit_gedung, name='edit_gedung'),    
 
 ]

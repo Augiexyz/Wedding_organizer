@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* Style kustom Anda */
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .bg-primary-dark { background-color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
+        .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
+        
+        /* Style untuk error message dari Django */
+        .form-error {
+            color: #DC2626; /* red-600 */
+            font-size: 0.875rem; /* 14px */
+            margin-top: 0.25rem; /* 4px */
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="flex">
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <nav>
+                <ul class="space-y-4">
+                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
+                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                                <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+                            </button>
+                        </form>
+                    </li>   
+                </ul>
+            </nav>
+        </aside>
+        <main class="flex-1 p-6 md:p-10">
+            <header class="mb-8">
+                <a href="{% url 'kelola_gedung' %}" class="text-pink-600 hover:underline font-semibold flex items-center mb-4">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali ke Daftar Gedung
+                </a>
+                <h2 class="text-3xl font-serif-display text-primary-dark">{{ page_title }}</h2>
+                <p class="text-gray-500 mt-1">Isi detail gedung yang menjadi partner atau rekanan Anda.</p>
+            </header>
+            
+            <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+                
+                <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div>
+                        <label for="{{ form.nama_gedung.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.nama_gedung.label }}</label>
+                        {{ form.nama_gedung }}
+                        <div class="form-error">{{ form.nama_gedung.errors }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="{{ form.lokasi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.lokasi.label }}</label>
+                            {{ form.lokasi }}
+                            <div class="form-error">{{ form.lokasi.errors }}</div>
+                        </div>
+                        <div>
+                            <label for="{{ form.kapasitas.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.kapasitas.label }}</label>
+                            {{ form.kapasitas }}
+                            <div class="form-error">{{ form.kapasitas.errors }}</div>
+                        </div>
+                        <div>
+                            <label for="{{ form.kategori.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.kategori.label }}</label>
+                            {{ form.kategori }}
+                            <div class="form-error">{{ form.kategori.errors }}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.harga_sewa.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.harga_sewa.label }}</label>
+                        {{ form.harga_sewa }}
+                        <p class="text-xs text-gray-500 mt-1">Masukkan angka saja. Harga ini akan ditampilkan sebagai harga "mulai dari".</p>
+                        <div class="form-error">{{ form.harga_sewa.errors }}</div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.deskripsi.label }}</label>
+                        {{ form.deskripsi }}
+                        <div class="form-error">{{ form.deskripsi.errors }}</div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.fasilitas.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.fasilitas.label }}</label>
+                        {{ form.fasilitas }}
+                        <div class="form-error">{{ form.fasilitas.errors }}</div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.foto_gedung.label }}</label>
+                        {{ form.foto_gedung }}
+                        <div class="form-error">{{ form.foto_gedung.errors }}</div>
+                    </div>
+
+                    <div class="pt-4 text-right">
+                        <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-transform">
+                            Simpan Gedung
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+</div> <script>
+        feather.replace();
+    </script>
+</body>
+</html>

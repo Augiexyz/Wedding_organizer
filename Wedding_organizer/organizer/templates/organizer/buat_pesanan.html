@@ -1,116 +1,154 @@
-{% comment %} organizer/templates/organizer/buat_pesanan.html {% endcomment %}
-{% load humanize %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulir Pemesanan - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS & Fonts -->
+    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
+        .bg-primary-dark { background-color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
         .btn-primary:hover { background-color: #9D174D; }
         .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
         .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
+        .form-error { color: #DC2626; font-size: 0.875rem; margin-top: 0.25rem; }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <!-- ... (Isi header sama seperti halaman sebelumnya) ... -->
-    </header>
+<body class="min-h-screen pb-10">
 
-    <main class="container mx-auto p-6 md:p-10">
-        <div class="mb-6">
-            <a href="{% url 'detail_paket' paket.id %}" class="text-pink-600 hover:underline font-semibold flex items-center">
-                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+    <!-- Header Sederhana -->
+    <div class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 h-16 flex items-center">
+            <a href="{% url 'detail_paket' paket.id %}" class="text-gray-600 hover:text-pink-600 flex items-center transition">
+                <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
                 Kembali ke Detail Paket
             </a>
         </div>
+    </div>
 
-        <div class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-serif-display text-primary-dark">Formulir Pemesanan</h1>
-            <p class="text-gray-500 mt-2 max-w-2xl mx-auto">Satu langkah lagi untuk mengamankan tanggal pernikahan impian Anda.</p>
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-serif-display font-bold text-gray-900">Formulir Pemesanan</h1>
+            <p class="text-gray-500 mt-2">Lengkapi data di bawah ini untuk memesan paket impian Anda.</p>
         </div>
 
-        <form method="POST">
-            {% csrf_token %}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Kolom Kiri: Formulir -->
-                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold text-primary-dark mb-6">Lengkapi Detail Acara Anda</h3>
-                    <div class="space-y-6">
-                        <div>
-                            <label for="{{ form.nama_pasangan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Pasangan</label>
-                            {{ form.nama_pasangan }}
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="{{ form.telepon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon Aktif</label>
-                                {{ form.telepon }}
-                            </div>
-                            <div>
-                                <label for="{{ form.tgl_acara.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pernikahan</label>
-                                {{ form.tgl_acara }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="{{ form.lokasi_acara.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Lokasi / Venue Acara</label>
-                            {{ form.lokasi_acara }}
-                        </div>
-                        
-                        <div>
-                            <label for="{{ form.jumlah_tamu.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Perkiraan Jumlah Tamu</label>
-                            {{ form.jumlah_tamu }}
-                        </div>
-
-                        <div>
-                            <label for="{{ form.catatan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
-                            {{ form.catatan }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kolom Kanan: Ringkasan Pesanan -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg sticky top-28">
-                        <h3 class="text-xl font-bold text-primary-dark border-b pb-3 mb-4">Ringkasan Pesanan Anda</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <p class="text-sm text-gray-500">Penyedia Jasa</p>
-                                <p class="font-bold text-gray-800">{{ paket.wo.profilwo.nama_brand }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">Paket yang Dipesan</p>
-                                <p class="font-bold text-gray-800">{{ paket.nama_paket }}</p>
-                            </div>
-                            <hr>
-                            <div class="flex justify-between items-center">
-                                <p class="text-lg font-semibold">Total Pembayaran</p>
-                                <p class="text-2xl font-bold text-primary-dark">Rp {{ paket.harga|intcomma }}</p>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary w-full text-center font-semibold py-3 px-4 rounded-lg shadow-lg mt-6">
-                            Konfirmasi & Kirim Pesanan
-                        </button>
-                        <p class="text-xs text-gray-500 text-center mt-4">
-                            Dengan menekan tombol ini, Anda setuju dengan Syarat & Ketentuan kami.
-                        </p>
-                    </div>
-                </div>
+        <!-- Kartu Ringkasan Paket -->
+        <div class="bg-white rounded-2xl p-6 shadow-md border border-pink-100 mb-8 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Paket yang dipilih</p>
+                <h2 class="text-xl font-bold text-primary-dark">{{ paket.nama_paket }}</h2>
+                <p class="text-gray-600 text-sm mt-1">Oleh: {{ paket.wo.profilwo.nama_brand }}</p>
             </div>
-        </form>
-    </main>
+            <div class="text-right">
+                <p class="text-lg font-bold text-pink-600">Rp {{ paket.harga|floatformat:0 }}</p>
+                
+                <!-- Info Kategori Gedung -->
+                {% if paket.kategori_gedung != 'non_gedung' %}
+                    <span class="inline-flex items-center px-2 py-1 rounded bg-pink-50 text-pink-700 text-xs font-medium mt-1">
+                        <i data-feather="map-pin" class="w-3 h-3 mr-1"></i>
+                        {{ paket.get_kategori_gedung_display }}
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-medium mt-1">
+                        <i data-feather="info" class="w-3 h-3 mr-1"></i>
+                        Tanpa Gedung
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulir -->
+        <div class="bg-white rounded-2xl p-8 shadow-lg">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Info Pasangan -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.nama_pasangan.label }}</label>
+                        {{ form.nama_pasangan }}
+                        <div class="form-error">{{ form.nama_pasangan.errors }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.telepon.label }}</label>
+                        {{ form.telepon }}
+                        <div class="form-error">{{ form.telepon.errors }}</div>
+                    </div>
+                </div>
+
+                <!-- Detail Acara -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.tgl_acara.label }}</label>
+                        {{ form.tgl_acara }}
+                        <div class="form-error">{{ form.tgl_acara.errors }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.jumlah_tamu.label }}</label>
+                        {{ form.jumlah_tamu }}
+                        <div class="form-error">{{ form.jumlah_tamu.errors }}</div>
+                    </div>
+                </div>
+
+                <!-- BAGIAN DINAMIS: PILIH GEDUNG -->
+                <!-- Django Forms akan otomatis menyembunyikan ini jika paket 'non_gedung' -->
+                {% if paket.kategori_gedung != 'non_gedung' %}
+                <div class="bg-pink-50 p-5 rounded-xl border border-pink-100">
+                    <label class="block text-sm font-bold text-pink-800 mb-1 flex items-center">
+                        <i data-feather="home" class="w-4 h-4 mr-2"></i>
+                        {{ form.gedung_dipilih.label }}
+                    </label>
+                    {{ form.gedung_dipilih }}
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i data-feather="check-circle" class="w-3 h-3 inline mr-1 text-green-500"></i>
+                        Daftar di atas hanya menampilkan gedung <strong>{{ paket.get_kategori_gedung_display }}</strong> milik WO ini.
+                    </p>
+                    <div class="form-error">{{ form.gedung_dipilih.errors }}</div>
+                </div>
+                {% else %}
+                    <!-- Render field hidden agar tidak error, walau kosong -->
+                    {{ form.gedung_dipilih }} 
+                {% endif %}
+
+                <!-- Lokasi Acara (Manual) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.lokasi_acara.label }}</label>
+                    {{ form.lokasi_acara }}
+                    {% if paket.kategori_gedung != 'non_gedung' %}
+                        <p class="text-xs text-gray-400 mt-1">Lokasi otomatis terisi sesuai gedung yang Anda pilih di atas.</p>
+                    {% else %}
+                        <p class="text-xs text-gray-500 mt-1">Silakan masukkan alamat lengkap lokasi acara Anda.</p>
+                    {% endif %}
+                    <div class="form-error">{{ form.lokasi_acara.errors }}</div>
+                </div>
+
+                <!-- Catatan -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.catatan.label }}</label>
+                    {{ form.catatan }}
+                    <div class="form-error">{{ form.catatan.errors }}</div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <button type="submit" class="w-full btn-primary font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all flex items-center justify-center text-lg">
+                    Kirim Pesanan
+                    <i data-feather="send" class="w-5 h-5 ml-2"></i>
+                </button>
+                
+                <p class="text-center text-xs text-gray-400 mt-4">
+                    Dengan mengirim pesanan, Anda setuju untuk menunggu konfirmasi ketersediaan dari pihak Wedding Organizer.
+                </p>
+
+            </form>
+        </div>
+    </div>
 
     <script>
         feather.replace();

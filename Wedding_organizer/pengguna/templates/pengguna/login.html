@@ -1,11 +1,18 @@
-{% comment %} pengguna/templates/pengguna/login.html {% endcomment %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Wedding Organizer Samarinda</title>
+    <title>Masuk - Wedding Organizer Samarinda</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
     <style>
         body {
             background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 50%, #fdf2f8 100%);
@@ -13,18 +20,15 @@
         }
         .glass-effect {
             backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .input-focus:focus {
-            outline: none;
-            border-color: #ec4899;
-            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+            background: rgba(255, 255, 255, 0.6); /* Sedikit lebih putih agar tulisan terbaca */
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
         .btn-hover:hover {
             transform: translateY(-1px);
             box-shadow: 0 10px 25px rgba(236, 72, 153, 0.3);
         }
+        
+        /* Animasi Background */
         .floating-shapes {
             position: absolute;
             width: 100%;
@@ -35,23 +39,38 @@
         .shape {
             position: absolute;
             border-radius: 50%;
-            background: linear-gradient(45deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.1));
+            background: linear-gradient(45deg, rgba(236, 72, 153, 0.15), rgba(219, 39, 119, 0.15));
             animation: float 6s ease-in-out infinite;
         }
-        .shape:nth-child(1) { width: 80px; height: 80px; top: 20%; left: 10%; animation-delay: 0s; }
-        .shape:nth-child(2) { width: 120px; height: 120px; top: 60%; right: 15%; animation-delay: 2s; }
-        .shape:nth-child(3) { width: 60px; height: 60px; bottom: 20%; left: 20%; animation-delay: 4s; }
+        .shape:nth-child(1) { width: 150px; height: 150px; top: 10%; left: 5%; animation-delay: 0s; }
+        .shape:nth-child(2) { width: 200px; height: 200px; top: 60%; right: 10%; animation-delay: 2s; }
+        .shape:nth-child(3) { width: 80px; height: 80px; bottom: 10%; left: 20%; animation-delay: 4s; }
+        
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
         }
-        /* Custom styling for Django form inputs */
+
+        /* Custom Styling untuk Input Django agar rapi tanpa @apply */
         input[type="text"], input[type="password"] {
-            @apply input-focus w-full px-4 py-3 border border-pink-200 rounded-lg bg-white/50 text-gray-800 placeholder-gray-500 transition-all duration-200;
+            width: 100%;
+            padding: 0.75rem 1rem; /* py-3 px-4 */
+            border: 1px solid #fbcfe8; /* border-pink-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            background-color: rgba(255, 255, 255, 0.5); /* bg-white/50 */
+            color: #1f2937; /* text-gray-800 */
+            outline: none;
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #ec4899; /* pink-500 */
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2); /* ring-pink */
+            background-color: white;
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
+
     <!-- Floating Background Shapes -->
     <div class="floating-shapes">
         <div class="shape"></div>
@@ -60,71 +79,71 @@
     </div>
 
     <!-- Login Container -->
-    <div class="glass-effect rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+    <div class="glass-effect rounded-3xl shadow-2xl p-8 md:p-10 w-full max-w-md relative z-10">
+        
+        <!-- Tombol Kembali ke Home -->
+        <a href="{% url 'index' %}" class="absolute top-6 left-6 text-gray-400 hover:text-pink-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+
+        <!-- Header Logo -->
+        <div class="text-center mb-8 mt-2">
+            <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-pink-200 transform rotate-3 hover:rotate-0 transition duration-300">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Selamat Datang</h1>
-            <p class="text-gray-600">Silakan masuk ke akun Anda</p>
+            <h1 class="text-3xl font-bold text-gray-800 font-serif-display">Selamat Datang</h1>
+            <p class="text-gray-500 text-sm mt-1">Masuk untuk melanjutkan perjalanan impianmu</p>
         </div>
 
         <!-- Login Form -->
-        <form method="POST" class="space-y-6">
+        <form method="POST" class="space-y-5">
             {% csrf_token %}
 
-            <!-- Menampilkan error umum (misal: username/password salah) -->
-            {% if form.non_field_errors %}
-            <div class="p-3 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-                {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+            <!-- Alert Error (Jika login gagal) -->
+            {% if form.errors %}
+            <div class="p-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl flex items-start" role="alert">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                <div>
+                    <span class="font-medium">Login Gagal!</span> Periksa username dan password Anda.
+                </div>
             </div>
             {% endif %}
 
             <!-- Username Input -->
             <div>
-                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                 {{ form.username }}
             </div>
 
             <!-- Password Input -->
             <div>
-                <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Kata Sandi</label>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700">Kata Sandi</label>
+                    <a href="#" class="text-xs text-pink-600 hover:text-pink-800 transition font-medium">Lupa kata sandi?</a>
+                </div>
                 {{ form.password }}
             </div>
 
-            <!-- Remember Me & Forgot Password -->
-            <div class="flex items-center justify-between">
-                <label class="flex items-center">
-                    <input type="checkbox" class="w-4 h-4 text-pink-500 border-pink-300 rounded focus:ring-pink-500 focus:ring-2">
-                    <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
-                </label>
-                <a href="#" class="text-sm text-pink-600 hover:text-pink-800 transition-colors">Lupa kata sandi?</a>
-            </div>
-
             <!-- Login Button -->
-            <button type="submit" class="btn-hover w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 transform">
-                Masuk
+            <button type="submit" class="btn-hover w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-3.5 px-4 rounded-xl font-bold text-lg shadow-lg shadow-pink-200 transition-all duration-200 mt-2">
+                Masuk Sekarang
             </button>
         </form>
 
         <!-- Divider -->
-        <div class="my-6 flex items-center">
-            <div class="flex-1 border-t border-pink-200"></div>
-            <span class="px-4 text-sm text-gray-500">atau</span>
-            <div class="flex-1 border-t border-pink-200"></div>
+        <div class="my-8 flex items-center">
+            <div class="flex-1 border-t border-gray-200"></div>
+            <span class="px-4 text-xs text-gray-400 uppercase tracking-wider font-medium">Belum punya akun?</span>
+            <div class="flex-1 border-t border-gray-200"></div>
         </div>
 
         <!-- Sign Up Link -->
-        <div class="mt-6 text-center">
-            <p class="text-sm text-gray-600">
-                Belum punya akun? 
-                <a href="{% url 'registrasi' %}" class="text-pink-600 hover:text-pink-800 font-medium transition-colors">
-                    Daftar sekarang
-                </a>
-            </p>
+        <div class="text-center">
+            <a href="{% url 'registrasi' %}" class="block w-full bg-white border border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 font-semibold py-3 rounded-xl transition-all duration-200">
+                Daftar Akun Baru
+            </a>
         </div>
     </div>
 </body>

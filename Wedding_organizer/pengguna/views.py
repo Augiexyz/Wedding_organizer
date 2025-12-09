@@ -62,15 +62,30 @@ def buat_profil_wo_view(request):
 
 @login_required
 def redirect_after_login_view(request):
-    profil = request.user.profil
-    if profil.role == 'wo':
-        has_wo_profile = hasattr(request.user, 'profilwo')
-        if not has_wo_profile:
-            return redirect('buat_profil_wo')
-        else:
-            return redirect('dashboard_wo') 
-    else: 
-        return redirect('daftar_wo')
+    user = request.user
+
+    # 1. Cek apakah User memiliki Profil
+    # Menggunakan hasattr untuk mengecek keberadaan relasi 'profil'
+    if hasattr(user, 'profil'):
+        role = user.profil.role
+        if role == 'wo':
+            return redirect('dashboard_wo')
+        elif role == 'customer':
+            # Cek parameter 'next' jika ada (misal redirect setelah login paksa)
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return redirect('index')
+    
+    # 2. Jika TIDAK punya profil, cek apakah dia Superuser/Admin
+    elif user.is_superuser:
+        # Arahkan admin langsung ke panel admin Django
+        return redirect('/admin/')
+    
+    # 3. Jika user biasa tapi data profil rusak/hilang
+    else:
+        messages.error(request, "Akun Anda tidak memiliki profil yang valid. Silakan hubungi admin.")
+        return redirect('index')
 
 @login_required
 def dashboard_wo_view(request):
