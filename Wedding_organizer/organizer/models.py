@@ -105,3 +105,10 @@ class Pesanan(models.Model):
 class FotoPortofolio(models.Model):
     paket = models.ForeignKey(Paket, related_name='galeri', on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='galeri_paket/')
+    
+class FotoGedung(models.Model):
+    gedung = models.ForeignKey(Gedung, on_delete=models.CASCADE, related_name='galeri_gedung')
+    foto = models.ImageField(upload_to='gedung_galeri/')
+
+    def __str__(self):
+        return f"Foto untuk {self.gedung.nama_gedung}"

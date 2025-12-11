@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 # Import model dan form Anda
 # Kita bersihkan sedikit impor yang berulang
-from .models import Pesanan, Paket, Gedung, FotoPortofolio
+from .models import Pesanan, Paket, Gedung, FotoPortofolio, FotoGedung
 from .forms import PaketForm, PesananForm, GedungForm
 
 # --- VIEW DASHBOARD YANG HILANG ---
@@ -307,32 +307,29 @@ def hapus_paket_view(request, paket_id):
 # --- PERBAIKAN: Menambahkan @login_required ---
 @login_required
 def tambah_gedung(request):
-    # Cek apakah user adalah WO
     if not hasattr(request.user, 'profil') or request.user.profil.role != 'wo':
         return redirect('index')
 
     if request.method == 'POST':
-        # PENTING: request.FILES wajib ada untuk upload foto
         form = GedungForm(request.POST, request.FILES)
-        
         if form.is_valid():
             gedung = form.save(commit=False)
-            gedung.wo = request.user  # Set pemilik gedung ke user yg login
+            gedung.wo = request.user
             gedung.save()
             
-            messages.success(request, f"Gedung '{gedung.nama_gedung}' BERHASIL MASUK DATABASE!")
+            # --- LOGIKA BARU UNTUK GALERI FOTO ---
+            # Mengambil list file dari input name="galeri_foto"
+            images = request.FILES.getlist('galeri_foto')
+            for image in images:
+                FotoGedung.objects.create(gedung=gedung, foto=image)
+            # -------------------------------------
+
+            messages.success(request, f"Gedung '{gedung.nama_gedung}' berhasil ditambahkan.")
             return redirect('kelola_gedung')
-        else:
-            # Jika gagal, print error ke terminal (bawah VS Code)
-            print("GAGAL MENYIMPAN GEDUNG:", form.errors)
-            messages.error(request, "Gagal menyimpan. Cek terminal untuk detail error.")
     else:
         form = GedungForm()
     
-    context = {
-        'form': form,
-        'page_title': 'Tambah Gedung Baru'
-    }
+    context = {'form': form, 'page_title': 'Tambah Gedung Baru'}
     return render(request, 'organizer/tambah_gedung.html', context)
 
 @login_required
@@ -409,38 +406,25 @@ def hapus_gedung(request, gedung_id):
 
 @login_required
 def edit_gedung(request, gedung_id):
-    """
-    View untuk mengedit gedung yang sudah ada.
-    """
-    # 1. Ambil data gedung berdasarkan ID, atau tampilkan 404 jika tidak ada
     gedung = get_object_or_404(Gedung, id=gedung_id)
-
-    # 2. Keamanan: Cek apakah yang login adalah pemilik gedung ini?
-    # Agar WO A tidak bisa mengedit gedung milik WO B
     if gedung.wo != request.user:
-        messages.error(request, "Anda tidak memiliki izin untuk mengedit gedung ini.")
         return redirect('kelola_gedung')
 
     if request.method == 'POST':
-        # 3. Jika tombol Simpan ditekan:
-        # 'instance=gedung' memberitahu Django untuk MENG-UPDATE data ini, bukan membuat baru.
         form = GedungForm(request.POST, request.FILES, instance=gedung)
         if form.is_valid():
             form.save()
+            
+            # --- LOGIKA TAMBAH FOTO BARU KE GALERI ---
+            images = request.FILES.getlist('galeri_foto')
+            for image in images:
+                FotoGedung.objects.create(gedung=gedung, foto=image)
+            # -----------------------------------------
+
             messages.success(request, f"Gedung '{gedung.nama_gedung}' berhasil diperbarui.")
             return redirect('kelola_gedung')
     else:
-        # 4. Jika baru membuka halaman (GET):
-        # Isi formulir secara otomatis dengan data yang ada di database
         form = GedungForm(instance=gedung)
     
-    context = {
-        'form': form,
-        # Judul halaman kita buat dinamis agar user tahu sedang mengedit
-        'page_title': f'Edit Gedung: {gedung.nama_gedung}' 
-    }
-    
-    # 5. PENTING: Kita GUNAKAN ULANG file 'tambah_gedung.html'
-    # Kita tidak perlu membuat file HTML baru, karena strukturnya sama persis.
+    context = {'form': form, 'page_title': f'Edit Gedung: {gedung.nama_gedung}'}
     return render(request, 'organizer/tambah_gedung.html', context)
-

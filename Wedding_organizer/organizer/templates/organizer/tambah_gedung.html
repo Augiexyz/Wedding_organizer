@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
+    <title>{{ page_title }} - WO-Kita</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
+    <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
 
     <style>
-        /* Style kustom Anda */
+        /* Custom styles yang sama dengan tema utama */
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
@@ -23,20 +26,16 @@
         .btn-primary:hover { background-color: #9D174D; }
         .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
         .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
-        
-        /* Style untuk error message dari Django */
-        .form-error {
-            color: #DC2626; /* red-600 */
-            font-size: 0.875rem; /* 14px */
-            margin-top: 0.25rem; /* 4px */
-        }
+        .form-error { color: #DC2626; font-size: 0.875rem; margin-top: 0.25rem; }
     </style>
 </head>
 <body class="min-h-screen">
 
+    <!-- Layout Utama dengan Sidebar -->
     <div class="flex">
+        <!-- Sidebar -->
         <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
-            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <h1 class="text-2xl font-serif-display font-bold mb-8">WO-Kita</h1>
             <nav>
                 <ul class="space-y-4">
                     <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
@@ -45,7 +44,7 @@
                     <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
                     <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
                     <li>
-                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                        <form action="{% url 'logout' %}" method="post" class="w-full mt-8">
                             {% csrf_token %}
                             <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
                                 <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
@@ -55,6 +54,8 @@
                 </ul>
             </nav>
         </aside>
+        
+        <!-- Konten Utama -->
         <main class="flex-1 p-6 md:p-10">
             <header class="mb-8">
                 <a href="{% url 'kelola_gedung' %}" class="text-pink-600 hover:underline font-semibold flex items-center mb-4">
@@ -113,10 +114,21 @@
                         <div class="form-error">{{ form.fasilitas.errors }}</div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.foto_gedung.label }}</label>
-                        {{ form.foto_gedung }}
-                        <div class="form-error">{{ form.foto_gedung.errors }}</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Foto Utama -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.foto_gedung.label }} (Utama)</label>
+                            {{ form.foto_gedung }}
+                            <div class="form-error">{{ form.foto_gedung.errors }}</div>
+                        </div>
+
+                        <!-- INPUT BARU: Galeri Foto -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Galeri Foto Tambahan</label>
+                            <!-- Input ini mendukung multiple files -->
+                            <input type="file" name="galeri_foto" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100 input-field">
+                            <p class="text-xs text-gray-500 mt-1">Tekan Ctrl (Windows) atau Command (Mac) untuk memilih banyak foto sekaligus.</p>
+                        </div>
                     </div>
 
                     <div class="pt-4 text-right">
@@ -127,7 +139,9 @@
                 </form>
             </div>
         </main>
-</div> <script>
+    </div>
+
+    <script>
         feather.replace();
     </script>
 </body>

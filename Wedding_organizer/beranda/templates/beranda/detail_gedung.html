@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ gedung.nama_gedung }} - Wedding Organizer Samarinda</title>
+    <title>{{ gedung.nama_gedung }} - WO-Kita</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
@@ -14,6 +14,11 @@
         .text-primary-dark { color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: 0.3s; }
         .btn-primary:hover { background-color: #9D174D; }
+        
+        /* Efek Zoom untuk Galeri */
+        .gallery-item { overflow: hidden; border-radius: 1rem; cursor: zoom-in; }
+        .gallery-item img { transition: transform 0.5s ease; width: 100%; height: 100%; object-cover: cover; }
+        .gallery-item:hover img { transform: scale(1.1); }
     </style>
 </head>
 <body class="min-h-screen pb-10">
@@ -25,7 +30,7 @@
                 <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
                 Kembali ke Daftar Gedung
             </a>
-            <a href="{% url 'index' %}" class="text-xl font-serif-display font-bold text-primary-dark">Wedding Organizer Samarinda</a>
+            <a href="{% url 'index' %}" class="text-xl font-serif-display font-bold text-primary-dark">WO-Kita</a>
         </div>
     </div>
 
@@ -44,7 +49,14 @@
                 </div>
                 <h1 class="text-4xl font-serif-display text-gray-900">{{ gedung.nama_gedung }}</h1>
                 <p class="text-gray-600 mt-1">
-                    Dikelola oleh: <a href="{% url 'detail_wo' gedung.wo.id %}" class="text-pink-600 hover:underline font-semibold">{{ gedung.wo.profilwo.nama_brand }}</a>
+                    Dikelola oleh: 
+                    {% if gedung.wo %}
+                        <a href="{% url 'detail_wo' gedung.wo.id %}" class="text-pink-600 hover:underline font-semibold">
+                            {{ gedung.wo.profilwo.nama_brand|default:gedung.wo.username }}
+                        </a>
+                    {% else %}
+                        <span class="text-gray-400 italic">Info WO Tidak Tersedia</span>
+                    {% endif %}
                 </p>
             </div>
             <div class="mt-4 md:mt-0 text-left md:text-right">
@@ -54,15 +66,19 @@
         </div>
 
         <!-- Gambar Utama -->
-        <div class="rounded-3xl overflow-hidden shadow-2xl h-96 bg-gray-200 mb-10 relative group">
+        <!-- Menggunakan h-96 (sekitar 400px) dan object-cover agar memenuhi container -->
+        <div class="rounded-3xl overflow-hidden shadow-2xl bg-gray-200 mb-10 relative group h-96 md:h-[500px]">
             {% if gedung.foto_gedung %}
-                <img src="{{ gedung.foto_gedung.url }}" alt="{{ gedung.nama_gedung }}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700">
+                <img src="{{ gedung.foto_gedung.url }}" 
+                     alt="{{ gedung.nama_gedung }}" 
+                     class="w-full h-full object-cover cursor-pointer transition duration-700 hover:scale-105" 
+                     onclick="openLightbox('{{ gedung.foto_gedung.url }}')">
             {% else %}
                 <div class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
                     <span>Tidak ada foto tersedia</span>
                 </div>
             {% endif %}
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none"></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -123,21 +139,26 @@
             <div class="space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-lg border-t-4 border-pink-600 sticky top-24">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Tertarik dengan gedung ini?</h3>
-                    <p class="text-gray-600 mt-1">
-                        Dikelola oleh: 
+                    <p class="text-gray-600 text-sm mb-6">
+                        Gedung ini dikelola oleh 
                         {% if gedung.wo %}
-                            <a href="{% url 'detail_wo' gedung.wo.id %}" class="text-pink-600 hover:underline font-semibold">
-                                {{ gedung.wo.profilwo.nama_brand|default:gedung.wo.username }}
-                            </a>
+                            <strong>{{ gedung.wo.profilwo.nama_brand|default:gedung.wo.username }}</strong>
                         {% else %}
-                            <span class="text-gray-400 italic">Info WO Tidak Tersedia (User Dihapus)</span>
+                            WO (Tidak Tersedia)
                         {% endif %}
+                        . Lihat paket pernikahan yang mereka tawarkan untuk memesan gedung ini.
                     </p>
-                    <!-- Tombol ke Profil WO untuk lihat paket -->
+                    
+                    {% if gedung.wo %}
                     <a href="{% url 'detail_wo' gedung.wo.id %}" class="w-full btn-primary py-3 px-4 rounded-xl font-bold shadow-lg shadow-pink-200 flex justify-center items-center mb-3">
                         Lihat Paket Wedding
                         <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
                     </a>
+                    {% else %}
+                    <button disabled class="w-full bg-gray-300 text-gray-500 py-3 px-4 rounded-xl font-bold cursor-not-allowed flex justify-center items-center mb-3">
+                        Info WO Tidak Tersedia
+                    </button>
+                    {% endif %}
                     
                     <div class="text-center">
                         <p class="text-xs text-gray-400">Lokasi: {{ gedung.lokasi }}</p>
@@ -147,10 +168,83 @@
 
         </div>
 
+        <!-- === BAGIAN GALERI FOTO GEDUNG === -->
+        <section class="mt-16 pt-10 border-t border-gray-200">
+            <div class="flex items-center mb-8">
+                <div class="bg-pink-100 p-2 rounded-lg mr-3">
+                    <i data-feather="image" class="w-6 h-6 text-pink-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Galeri Foto Gedung</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                
+                <!-- 1. Foto Utama (Selalu ditampilkan jika ada) -->
+                {% if gedung.foto_gedung %}
+                <div class="gallery-item h-48 shadow-md group relative" onclick="openLightbox('{{ gedung.foto_gedung.url }}')">
+                    <img src="{{ gedung.foto_gedung.url }}" alt="{{ gedung.nama_gedung }}">
+                    <div class="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">Utama</div>
+                </div>
+                {% endif %}
+
+                <!-- 2. Foto Tambahan (Looping dari Database) -->
+                {% for item in gedung.galeri_gedung.all %}
+                <div class="gallery-item h-48 shadow-md" onclick="openLightbox('{{ item.foto.url }}')">
+                    <img src="{{ item.foto.url }}" alt="Galeri {{ gedung.nama_gedung }}">
+                </div>
+                {% endfor %}
+
+                <!-- 3. Pesan Kosong jika tidak ada sama sekali -->
+                {% if not gedung.foto_gedung and not gedung.galeri_gedung.all %}
+                <div class="col-span-full text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                    <i data-feather="image" class="w-12 h-12 text-gray-300 mx-auto mb-2"></i>
+                    <p class="text-gray-500">Belum ada foto galeri untuk gedung ini.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </section>
+        <!-- ======================================= -->
+
     </main>
+
+    <!-- LIGHTBOX MODAL (Pop-up Gambar) -->
+    <div id="lightbox" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-4" onclick="closeLightbox()">
+        <button class="absolute top-6 right-6 text-white hover:text-pink-500 transition">
+            <i data-feather="x" class="w-10 h-10"></i>
+        </button>
+        <img id="lightbox-img" src="" alt="Full Preview" class="max-w-full max-h-screen rounded-lg shadow-2xl transform scale-95 transition duration-300">
+    </div>
 
     <script>
         feather.replace();
+
+        // Script Lightbox
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            
+            img.src = src;
+            lightbox.classList.remove('hidden');
+            
+            // Animasi kecil saat buka
+            setTimeout(() => {
+                img.classList.remove('scale-95');
+                img.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            
+            img.classList.remove('scale-100');
+            img.classList.add('scale-95');
+            
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+            }, 200);
+        }
     </script>
 </body>
 </html>
