@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-e)kwe)fa5e_tl0rp%ai#_8nqt=0-4w=7l7tk=26wv3$-%w9i-4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'prevocalically-trivial-archimedes.ngrok-free.dev']
 
 LOGIN_REDIRECT_URL = '/akun/redirect-after-login/'
 # Application definition
@@ -136,8 +136,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://prevocalically-trivial-archimedes.ngrok-free.dev']
+    
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+XENDIT_SECRET_KEY = 'xnd_development_grYeBnBCveKXtIVuN7EFKINr9qB7lzww6ERlQxWp24hOsFRF1ZWmjE5LN4R9MW'
 
 JAZZMIN_SETTINGS = {
     # Judul yang akan muncul di tab browser dan halaman login

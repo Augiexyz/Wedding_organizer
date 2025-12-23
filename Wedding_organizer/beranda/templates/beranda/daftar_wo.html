@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Wedding Organizer - WO-Kita</title>
+    <title>Daftar Wedding Organizer - Wedding Organizer Samarinda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
@@ -25,7 +25,7 @@
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% url 'index' %}" class="text-2xl font-serif-display text-primary-dark font-bold">WO-Kita</a>
+            <a href="{% url 'index' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
             <div class="hidden lg:flex items-center space-x-6">
                 <a href="{% url 'index' %}" class="text-gray-600 hover:text-pink-600">Beranda</a>
                 <a href="{% url 'daftar_wo' %}" class="text-pink-600 font-bold">Daftar WO</a>
@@ -35,13 +35,17 @@
                 {% endif %}
             </div>
             <div class="flex items-center space-x-4">
-                <span class="text-gray-700 hidden sm:block">Halo, {{ user.first_name|default:user.username }}!</span>
-                <form action="{% url 'logout' %}" method="post" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
-                        <i data-feather="log-out"></i>
-                    </button>
-                </form>
+                {% if user.is_authenticated %}
+                    <span class="text-gray-700 hidden sm:block">Halo, {{ user.first_name|default:user.username }}!</span>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
+                            <i data-feather="log-out"></i>
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-primary px-4 py-2 rounded-lg text-sm">Login</a>
+                {% endif %}
             </div>
         </nav>
     </header>
@@ -71,8 +75,8 @@
             {% for wo in profil_wos %}
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full relative">
                 
-                <!-- === PERBAIKAN: LOGIKA FOTO SAMPUL === -->
-                <div class="h-48 bg-gray-200 relative overflow-visible"> <!-- Perhatikan overflow-visible agar logo menonjol -->
+                <!-- Foto Sampul -->
+                <div class="h-48 bg-gray-200 relative overflow-visible"> 
                     {% if wo.foto_sampul %}
                         <img src="{{ wo.foto_sampul.url }}" alt="{{ wo.nama_brand }}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700">
                     {% else %}
@@ -82,7 +86,7 @@
                     <!-- Gradient Overlay -->
                     <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
 
-                    <!-- === PERBAIKAN: LOGIKA LOGO WO === -->
+                    <!-- Logo WO -->
                     <div class="absolute -bottom-8 left-6 z-10">
                         <div class="w-16 h-16 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
                             {% if wo.logo %}
@@ -125,6 +129,7 @@
                         </span>
                     </div>
                     
+                    <!-- TOMBOL LIHAT PROFIL (Selalu Link Langsung) -->
                     <a href="{% url 'detail_wo' wo.user.id %}" class="w-full btn-outline font-semibold py-2 px-4 rounded-lg inline-block text-center mt-auto hover:bg-pink-600 hover:text-white hover:border-pink-600 transition">
                         Lihat Profil & Paket
                     </a>

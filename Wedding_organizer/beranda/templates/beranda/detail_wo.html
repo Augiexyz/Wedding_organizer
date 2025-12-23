@@ -21,6 +21,18 @@
         .text-primary-dark { color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
         .btn-primary:hover { background-color: #9D174D; }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #DB2777;
+            color: #DB2777;
+            transition: all 0.3s ease;
+        }
+        .btn-outline:hover {
+            background-color: #DB2777;
+            color: white;
+        }
+
         .tab-button { padding: 0.75rem 1rem; font-weight: 600; color: #4B5563; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
         .tab-button.active, .tab-button:hover { color: #DB2777; border-bottom-color: #DB2777; }
         .tab-content { display: none; }
@@ -31,26 +43,44 @@
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% url 'daftar_wo' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
+            <a href="{% url 'index' %}" class="text-2xl font-serif-display text-primary-dark font-bold flex items-center">
+                <i data-feather="heart" class="w-6 h-6 mr-2 text-pink-600 fill-current"></i>
+                Wedding Organizer Samarinda
+            </a>
             <div class="hidden lg:flex items-center space-x-6">
                 <a href="{% url 'index' %}" class="text-gray-600 hover:text-pink-600">Beranda</a>
                 <a href="{% url 'daftar_wo' %}" class="text-pink-600 font-bold">Daftar WO</a>
                 <a href="{% url 'daftar_gedung' %}" class="text-gray-600 hover:text-pink-600">Daftar Gedung</a>
-                <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600">Status Pesanan</a>
+                {% if user.is_authenticated and user.profil.role == 'customer' %}
+                    <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600">Status Pesanan</a>
+                {% endif %}
             </div>
             <div class="flex items-center space-x-4">
-                <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
-                <form action="{% url 'logout' %}" method="post" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
-                        <i data-feather="log-out"></i>
-                    </button>
-                </form>
+                {% if user.is_authenticated %}
+                    <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
+                            <i data-feather="log-out"></i>
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-primary px-4 py-2 rounded-lg text-sm">Login</a>
+                {% endif %}
             </div>
         </nav>
     </header>
 
     <main class="container mx-auto p-6 md:p-10">
+        
+        <!-- Breadcrumb -->
+        <div class="mb-6">
+            <a href="{% url 'daftar_wo' %}" class="inline-flex items-center text-gray-600 hover:text-pink-600 transition-colors font-medium">
+                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali ke Daftar WO
+            </a>
+        </div>
+
         <!-- Banner & Info Utama WO -->
         <section class="bg-white rounded-2xl shadow-lg overflow-hidden mb-10">
             <div class="h-48 md:h-64 bg-cover bg-center" 
@@ -58,11 +88,13 @@
             </div>
             <div class="p-6 md:p-8">
                 <div class="flex flex-col sm:flex-row items-start sm:items-end -mt-20 sm:-mt-16">
-                    {% if profil_wo.logo %}
-                    <img src="{{ profil_wo.logo.url }}" alt="Logo {{ profil_wo.nama_brand }}" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md">
-                    {% else %}
-                    <img src="https://placehold.co/150x150/F9A8D4/831843?text={{ profil_wo.nama_brand|slice:':1' }}" alt="Logo WO" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md">
-                    {% endif %}
+                    <div class="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-white flex items-center justify-center">
+                        {% if profil_wo.logo %}
+                            <img src="{{ profil_wo.logo.url }}" alt="Logo {{ profil_wo.nama_brand }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <span class="text-3xl font-bold text-pink-600">{{ profil_wo.nama_brand|slice:":1" }}</span>
+                        {% endif %}
+                    </div>
                     <div class="sm:ml-6 mt-4 sm:mt-0">
                         <h1 class="text-3xl md:text-4xl font-bold font-serif-display text-primary-dark">{{ profil_wo.nama_brand }}</h1>
                         <p class="text-gray-500 text-md mt-1 flex items-center"><i data-feather="map-pin" class="w-4 h-4 mr-2"></i>{{ profil_wo.alamat|truncatewords:4 }}</p>
@@ -77,7 +109,6 @@
                 <nav class="flex border-b min-w-max" id="tabs">
                     <button class="tab-button active" data-target="tentang">Tentang WO</button>
                     <button class="tab-button" data-target="paket">Daftar Paket</button>
-                    <!-- TAB BARU: DAFTAR GEDUNG -->
                     <button class="tab-button" data-target="gedung">Daftar Gedung</button>
                     <button class="tab-button" data-target="galeri">Galeri Portofolio</button>
                 </nav>
@@ -102,7 +133,6 @@
                                 <h4 class="text-xl font-bold text-pink-700">{{ paket.nama_paket }}</h4>
                                 <p class="text-gray-500 mt-1 line-clamp-2">{{ paket.deskripsi }}</p>
                                 
-                                <!-- Info Kategori Gedung di Paket -->
                                 {% if paket.kategori_gedung != 'non_gedung' %}
                                     <span class="inline-flex items-center px-2 py-1 mt-2 rounded bg-pink-100 text-pink-800 text-xs font-bold">
                                         <i data-feather="home" class="w-3 h-3 mr-1"></i> Termasuk Gedung: {{ paket.get_kategori_gedung_display }}
@@ -127,8 +157,8 @@
                     </div>
                 </div>
 
-                <!-- KONTEN TAB BARU: DAFTAR GEDUNG -->
-               <div id="gedung" class="tab-content">
+                <!-- KONTEN TAB: DAFTAR GEDUNG -->
+                <div id="gedung" class="tab-content">
                     <h3 class="text-2xl font-bold text-primary-dark mb-6">Gedung & Venue Rekanan</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {% for gedung in gedungs %}
@@ -141,7 +171,6 @@
                                     <img src="https://placehold.co/400x250/F9A8D4/831843?text=Foto+Gedung" class="w-full h-full object-cover">
                                 {% endif %}
                                 
-                                <!-- Badge Kategori -->
                                 <div class="absolute top-3 right-3">
                                     <span class="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-pink-600 shadow-sm border border-pink-100">
                                         Kategori: {{ gedung.get_kategori_display }}
@@ -161,9 +190,9 @@
                                     </span>
                                     <span class="text-lg font-bold text-pink-600">Rp {{ gedung.harga_sewa|intcomma }}</span>
                                 </div>
-
-                                <!-- TOMBOL BARU DI SINI -->
-                                <a href="{% url 'detail_gedung' gedung.id %}" class="block w-full mt-4 text-center border border-pink-600 text-pink-600 font-semibold py-2 px-4 rounded-lg hover:bg-pink-600 hover:text-white transition duration-300">
+                                
+                                <!-- Link ke Detail Gedung -->
+                                <a href="{% url 'detail_gedung' gedung.id %}" class="w-full mt-4 btn-outline font-semibold py-2 px-4 rounded-lg inline-block text-center">
                                     Lihat Detail
                                 </a>
                             </div>
@@ -198,7 +227,6 @@
     <script>
         feather.replace();
         
-        // Script Tab
         const tabs = document.getElementById('tabs');
         const tabContents = document.querySelectorAll('.tab-content');
 

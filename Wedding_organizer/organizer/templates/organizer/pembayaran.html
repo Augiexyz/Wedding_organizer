@@ -1,4 +1,3 @@
-{% comment %} organizer/templates/organizer/pembayaran.html {% endcomment %}
 {% load humanize %}
 <!DOCTYPE html>
 <html lang="id">
@@ -6,174 +5,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pembayaran - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
         .btn-primary:hover { background-color: #9D174D; }
-        .input-field {
-            border: 1px solid #ddd;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            transition: all 0.2s ease;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #DB2777;
-            box-shadow: 0 0 0 2px #F9A8D4;
-        }
-        /* Styling untuk pilihan metode pembayaran */
-        input[type="radio"]:checked + label {
-            border-color: #DB2777;
-            box-shadow: 0 0 0 2px #F9A8D4;
-            background-color: #FFF1F2;
-        }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
+
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% url 'daftar_wo' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
-            <div class="hidden lg:flex items-center space-x-6">
-                <a href="{% url 'daftar_wo' %}" class="text-gray-600 hover:text-pink-600">Daftar WO</a>
-                <a href="{% url 'status_pesanan' %}" class="text-pink-600 font-bold">Status Pesanan</a>
+        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600 flex items-center transition font-medium">
+                <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
+                Batal / Kembali
+            </a>
+            <div class="flex items-center space-x-2">
+                <i data-feather="lock" class="w-4 h-4 text-green-600"></i>
+                <span class="text-sm font-bold text-gray-700">Pembayaran Aman (Escrow)</span>
             </div>
-            <div class="flex items-center space-x-4">
-                 <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
-                 <form action="{% url 'logout' %}" method="post" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
-                        <i data-feather="log-out"></i>
-                    </button>
-                </form>
-            </div>
-        </nav>
+        </div>
     </header>
 
-    <main class="container mx-auto p-6 md:p-10">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-10">
-                <h1 class="text-4xl font-serif-display text-primary-dark">Lakukan Pembayaran</h1>
-                <p class="text-gray-500 mt-2">Selesaikan pesanan Anda dengan pembayaran yang aman.</p>
-            </div>
+    <main class="container mx-auto p-6 md:p-10 flex-grow flex items-center justify-center">
+        <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            
+            <!-- Kolom Kiri: Rincian Pesanan -->
+            <div class="space-y-6">
+                <div>
+                    <h1 class="text-3xl font-serif-display text-primary-dark mb-2">Selesaikan Pembayaran</h1>
+                    <p class="text-gray-500">Mohon selesaikan pembayaran untuk mengonfirmasi pesanan Anda.</p>
+                </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-                <!-- Kolom Kiri: Detail Pembayaran (Tampilan Statis) -->
-                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg">
-                    <!-- Penjelasan Escrow -->
-                    <div class="flex items-start bg-pink-50 text-pink-800 p-4 rounded-lg mb-8">
-                        <i data-feather="shield" class="w-8 h-8 mr-4 flex-shrink-0"></i>
-                        <div>
-                            <h3 class="font-bold">Pembayaran Anda Aman Bersama Kami</h3>
-                            <p class="text-sm mt-1">
-                                Dana akan kami tahan dan baru akan diteruskan ke Wedding Organizer setelah acara Anda dikonfirmasi selesai.
-                            </p>
-                        </div>
-                    </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Rincian Tagihan</h3>
                     
-                    <h3 class="text-lg font-bold text-primary-dark mb-4">Pilih Metode Pembayaran</h3>
-                    <div class="space-y-4">
-                        <!-- ... (Pilihan metode pembayaran statis) ... -->
-                        <!-- Pilihan Metode Pembayaran -->
-                    <h3 class="text-lg font-bold text-primary-dark mb-4">Pilih Metode Pembayaran</h3>
-                    <div class="space-y-4">
-                        <!-- Kartu Kredit/Debit -->
-                        <div>
-                            <input type="radio" name="payment_method" id="credit-card" class="sr-only" checked>
-                            <label for="credit-card" class="border rounded-lg p-4 flex justify-between items-center cursor-pointer transition-all">
-                                <div>
-                                    <h4 class="font-semibold">Kartu Kredit / Debit</h4>
-                                    <p class="text-sm text-gray-500">Bayar dengan Visa, MasterCard, dll.</p>
-                                </div>
-                                <img src="https://placehold.co/100x25/FFFFFF/000000?text=VISA+MC" alt="Credit Cards" class="h-6">
-                            </label>
-                        </div>
-                         <!-- Virtual Account -->
-                        <div>
-                            <input type="radio" name="payment_method" id="va" class="sr-only">
-                            <label for="va" class="border rounded-lg p-4 flex justify-between items-center cursor-pointer transition-all">
-                                <div>
-                                    <h4 class="font-semibold">Virtual Account</h4>
-                                    <p class="text-sm text-gray-500">BCA, Mandiri, BRI, BNI</p>
-                                </div>
-                                <img src="https://placehold.co/100x25/FFFFFF/000000?text=Bank+VA" alt="Virtual Account" class="h-6">
-                            </label>
-                        </div>
-                    </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-600">Paket: {{ pesanan.paket.nama_paket }}</span>
+                        <span class="font-medium text-gray-900">Rp {{ pesanan.paket.harga|intcomma }}</span>
                     </div>
 
-                    <!-- Form Detail Kartu (Hanya untuk tampilan) -->
-                    <div class="mt-8 border-t pt-6">
-                        <div class="space-y-4">
-                             <div>
-                                <label for="card-name" class="block text-sm font-medium text-gray-700 mb-1">Nama Pemilik Kartu</label>
-                                <input type="text" id="card-name" class="input-field" placeholder="BUDI SETIAWAN">
-                            </div>
-                            <div>
-                                <label for="card-number" class="block text-sm font-medium text-gray-700 mb-1">Nomor Kartu</label>
-                                <input type="text" id="card-number" class="input-field" placeholder="0000 0000 0000 0000">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="expiry-date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kedaluwarsa</label>
-                                    <input type="text" id="expiry-date" class="input-field" placeholder="MM/YY">
-                                </div>
-                                <div>
-                                    <label for="cvv" class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                    <input type="text" id="cvv" class="input-field" placeholder="123">
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-600">Biaya Layanan & Keamanan</span>
+                        <span class="font-medium text-gray-900">Rp {{ biaya_layanan|intcomma }}</span>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-primary-dark">Total Pembayaran</span>
+                        <span class="text-2xl font-bold text-pink-600">Rp {{ total_pembayaran|intcomma }}</span>
                     </div>
                 </div>
 
-                <!-- Kolom Kanan: Ringkasan Pesanan (Dinamis & Fungsional) -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg sticky top-28">
-                        <h3 class="text-lg font-bold text-primary-dark border-b pb-3 mb-4">Ringkasan Pesanan</h3>
-                        <div class="space-y-3 text-gray-600">
-                            <p class="font-semibold">{{ pesanan.paket.wo.profilwo.nama_brand }}</p>
-                            <div class="border-b pb-4">
-                                <p class="font-medium text-pink-700">{{ pesanan.paket.nama_paket }}</p>
-                                <p class="text-sm">Tanggal Acara: {{ pesanan.tgl_acara|date:"d M Y" }}</p>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Harga Paket</span>
-                                <span>Rp {{ pesanan.paket.harga|intcomma }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Biaya Layanan Aman</span>
-                                <span>Rp {{ biaya_layanan|intcomma }}</span>
-                            </div>
-                            <div class="border-t pt-4 mt-2 flex justify-between font-bold text-gray-800 text-lg">
-                                <span>Total Pembayaran</span>
-                                <span>Rp {{ total_pembayaran|intcomma }}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- FORM UNTUK TOMBOL PEMBAYARAN -->
-                        <form method="POST" class="w-full">
-                            {% csrf_token %}
-                            <button type="submit" class="w-full btn-primary font-bold py-3 px-4 rounded-lg shadow-lg mt-6 transform hover:-translate-y-0.5 transition-transform">
-                                Bayar Sekarang (Rp {{ total_pembayaran|intcomma }})
-                            </button>
-                        </form>
+                <!-- Info Keamanan -->
+                <div class="bg-blue-50 p-4 rounded-xl flex items-start border border-blue-100">
+                    <div class="bg-white p-2 rounded-full shadow-sm mr-3">
+                        <i data-feather="shield" class="w-5 h-5 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-blue-800 text-sm">Jaminan Uang Kembali</h4>
+                        <p class="text-xs text-blue-700 mt-1">
+                            Dana Anda aman di rekening bersama (Escrow) Wedding Organizer Samarinda. Dana baru akan diteruskan ke Vendor setelah acara selesai.
+                        </p>
                     </div>
                 </div>
             </div>
+
+            <!-- Kolom Kanan: Aksi Bayar -->
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-24">
+                <div class="text-center mb-6">
+                    <div class="inline-block p-3 rounded-full bg-pink-50 mb-3">
+                        <i data-feather="credit-card" class="w-8 h-8 text-pink-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">Metode Pembayaran</h3>
+                    <p class="text-gray-500 text-sm mt-2">
+                        Anda akan diarahkan ke halaman pembayaran aman Xendit untuk memilih metode (Transfer Bank, E-Wallet, QRIS, dll).
+                    </p>
+                </div>
+
+                <!-- FORM PEMBAYARAN UTAMA -->
+                <!-- Form ini akan mengirim POST request ke views.py, yang kemudian akan redirect ke Xendit -->
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-3 mb-6">
+                        <!-- Visualisasi Metode Pembayaran (Hanya Tampilan) -->
+                        <div class="flex justify-center space-x-2 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+                            <img src="https://placehold.co/50x30/EEE/333?text=BCA" alt="BCA" class="h-8 rounded shadow-sm">
+                            <img src="https://placehold.co/50x30/EEE/333?text=BRI" alt="BRI" class="h-8 rounded shadow-sm">
+                            <img src="https://placehold.co/50x30/EEE/333?text=QRIS" alt="QRIS" class="h-8 rounded shadow-sm">
+                            <img src="https://placehold.co/50x30/EEE/333?text=VISA" alt="VISA" class="h-8 rounded shadow-sm">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary py-4 px-6 rounded-xl font-bold text-lg shadow-lg shadow-pink-200 hover:shadow-pink-300 transform hover:-translate-y-1 transition-all flex justify-center items-center">
+                        <i data-feather="lock" class="w-5 h-5 mr-2"></i>
+                        Bayar Sekarang
+                    </button>
+                    
+                    <div class="mt-4 flex justify-center items-center space-x-2">
+                        <span class="text-xs text-gray-400">Powered by</span>
+                        <span class="text-xs font-bold text-gray-500 tracking-wider">xendit</span>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </main>
 
@@ -182,4 +124,3 @@
     </script>
 </body>
 </html>
-```
