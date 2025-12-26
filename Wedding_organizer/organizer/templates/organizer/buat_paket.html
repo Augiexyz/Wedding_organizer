@@ -1,12 +1,20 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }} - Wedding Organizer Samarinda</title>
+    <title>{{ page_title }} - WO-Kita</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
@@ -14,35 +22,43 @@
         .bg-primary-dark { background-color: #831843; }
         .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
         .btn-primary:hover { background-color: #9D174D; }
+        
+        /* Style input field agar cocok dengan widgets di forms.py */
         .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
         .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
         .form-error { color: #DC2626; font-size: 0.875rem; margin-top: 0.25rem; }
     </style>
 </head>
 <body class="min-h-screen">
+
     <div class="flex">
         <!-- Sidebar -->
         <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
-            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <h1 class="text-2xl font-serif-display font-bold mb-8">WO-Kita</h1>
             <nav>
                 <ul class="space-y-4">
                     <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
-                    <li><a href="kelola_pesanan" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    
+                    <!-- Menu Aktif -->
                     <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    
                     <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
-                    <li><a href="edit_profil_wo" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    
                     <li>
-                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                        <form action="{% url 'logout' %}" method="post" class="w-full mt-8">
                             {% csrf_token %}
                             <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
                                 <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
                             </button>
                         </form>
-                    </li>                 
+                    </li>
                 </ul>
             </nav>
         </aside>
 
+        <!-- Konten Utama -->
         <main class="flex-1 p-6 md:p-10">
             <header class="mb-8">
                 <a href="{% url 'kelola_paket' %}" class="text-pink-600 hover:underline font-semibold flex items-center mb-4">
@@ -54,6 +70,7 @@
             </header>
             
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+                
                 <form method="POST" enctype="multipart/form-data" class="space-y-6">
                     {% csrf_token %}
 
@@ -77,6 +94,7 @@
                     </div>
 
                     <!-- KATEGORI GEDUNG (PERUBAHAN UTAMA DI SINI) -->
+                    <!-- Ini menampilkan Dropdown Pilihan Kategori (S/M/L) -->
                     <div class="bg-pink-50 p-4 rounded-lg border border-pink-100">
                         <label class="block text-sm font-bold text-pink-800 mb-1 flex items-center">
                             <i data-feather="layers" class="w-4 h-4 mr-2"></i>
@@ -85,7 +103,7 @@
                         {{ form.kategori_gedung }}
                         <p class="text-xs text-gray-500 mt-2">
                             <i data-feather="info" class="w-3 h-3 inline mr-1"></i>
-                            Tentukan fasilitas gedung. Pelanggan akan memilih gedung spesifik sesuai kategori ini (S, M, L) nanti.
+                            Tentukan jatah fasilitas gedung untuk paket ini. Pelanggan nanti akan memilih gedung spesifik sesuai kategori ini (S/M/L).
                         </p>
                         <div class="form-error">{{ form.kategori_gedung.errors }}</div>
                     </div>

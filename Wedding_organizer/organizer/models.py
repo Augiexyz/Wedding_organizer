@@ -112,3 +112,18 @@ class FotoGedung(models.Model):
 
     def __str__(self):
         return f"Foto untuk {self.gedung.nama_gedung}"
+    
+class Ulasan(models.Model):
+    wo = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ulasan_wo')
+    penulis = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='penulis_ulasan')
+    
+    # --- FIELD BARU: KUNCI AGAR 1 PESANAN = 1 ULASAN ---
+    pesanan = models.OneToOneField(Pesanan, on_delete=models.CASCADE, null=True, blank=True, related_name='data_ulasan')
+    # ---------------------------------------------------
+    
+    rating = models.IntegerField(default=5, choices=[(i, i) for i in range(1, 6)])
+    komentar = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Ulasan oleh {self.penulis.username} untuk {self.wo.profilwo.nama_brand}"

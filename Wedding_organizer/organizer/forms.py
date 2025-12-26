@@ -1,5 +1,5 @@
 from django import forms
-from .models import Gedung, Paket, Pesanan
+from .models import Gedung, Paket, Pesanan, Ulasan
 
 class PaketForm(forms.ModelForm):
     class Meta:
@@ -40,7 +40,6 @@ class PaketForm(forms.ModelForm):
 class PesananForm(forms.ModelForm):
     class Meta:
         model = Pesanan
-        # Tambahkan 'gedung_dipilih' ke dalam fields
         fields = [
             'nama_pasangan', 'telepon', 'tgl_acara', 
             'lokasi_acara', 'jumlah_tamu', 'catatan', 'gedung_dipilih'
@@ -50,41 +49,40 @@ class PesananForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # Kita terima argumen tambahan 'paket' untuk filter gedung nanti
         paket = kwargs.pop('paket', None) 
         super(PesananForm, self).__init__(*args, **kwargs)
         
-        self.fields['nama_pasangan'].widget.attrs.update({'class': 'input-field', 'placeholder': 'Contoh: Augie & Aska'})
-        self.fields['telepon'].widget.attrs.update({'class': 'input-field', 'placeholder': 'Nomor yang bisa dihubungi'})
-        self.fields['tgl_acara'].widget.attrs.update({'class': 'input-field'})
-        self.fields['lokasi_acara'].widget.attrs.update({'class': 'input-field', 'placeholder': 'Contoh: Gedung Serbaguna (Isi jika tidak sewa gedung)'})
-        self.fields['jumlah_tamu'].widget.attrs.update({'class': 'input-field', 'placeholder': 'Contoh: 500'})
-        self.fields['catatan'].widget.attrs.update({'class': 'input-field h-24', 'placeholder': 'Apakah ada permintaan khusus...'})
+        input_css = 'input-field'
+        self.fields['nama_pasangan'].widget.attrs.update({'class': input_css, 'placeholder': 'Contoh: Budi & Wati'})
+        self.fields['telepon'].widget.attrs.update({'class': input_css, 'placeholder': 'Nomor WA aktif'})
+        self.fields['tgl_acara'].widget.attrs.update({'class': input_css})
+        self.fields['lokasi_acara'].widget.attrs.update({'class': input_css, 'placeholder': 'Alamat lokasi acara (jika di rumah/gedung sendiri)'})
+        self.fields['jumlah_tamu'].widget.attrs.update({'class': input_css, 'placeholder': 'Contoh: 500'})
+        self.fields['catatan'].widget.attrs.update({'class': f'{input_css} h-24', 'placeholder': 'Permintaan khusus...'})
         
-        # --- LOGIKA FILTER GEDUNG UNTUK CUSTOMER ---
-        self.fields['gedung_dipilih'].widget.attrs.update({'class': 'input-field'})
+        # Logika Filter Gedung
+        self.fields['gedung_dipilih'].widget.attrs.update({'class': input_css})
         self.fields['gedung_dipilih'].label = "Pilih Gedung (Sesuai Paket)"
-        self.fields['gedung_dipilih'].empty_label = "Pilih salah satu gedung..."
+        self.fields['gedung_dipilih'].empty_label = "Pilih Gedung..."
 
         if paket:
-            # 1. Jika paket ini 'non_gedung', sembunyikan/kosongkan pilihan gedung
             if paket.kategori_gedung == 'non_gedung':
                 self.fields['gedung_dipilih'].widget = forms.HiddenInput()
                 self.fields['gedung_dipilih'].required = False
                 self.fields['gedung_dipilih'].queryset = Gedung.objects.none()
-            
-            # 2. Jika paket punya kategori (S/M/L), tampilkan HANYA gedung yang sesuai
             else:
                 self.fields['gedung_dipilih'].queryset = Gedung.objects.filter(
-                    wo=paket.wo,                # Hanya gedung milik WO ini
-                    kategori=paket.kategori_gedung # Hanya kategori yang sesuai (S/M/L)
+                    wo=paket.wo, 
+                    kategori=paket.kategori_gedung
                 )
-                self.fields['gedung_dipilih'].required = True # Wajib pilih
-                # Kosongkan lokasi_acara karena akan otomatis pakai lokasi gedung
-                self.fields['lokasi_acara'].required = False 
-                self.fields['lokasi_acara'].widget.attrs['placeholder'] = 'Akan disesuaikan dengan gedung terpilih'
-                self.fields['lokasi_acara'].disabled = True # Opsional: disable input manual
-
+                self.fields['gedung_dipilih'].required = True
+                self.fields['lokasi_acara'].required = False
+                self.fields['lokasi_acara'].widget.attrs.update({
+                    'placeholder': 'Lokasi otomatis sesuai gedung yang dipilih',
+                    'disabled': 'disabled',
+                    'class': 'input-field bg-gray-100 text-gray-500 cursor-not-allowed'
+                })
+                self.fields['lokasi_acara'].label = "Lokasi Acara (Otomatis)"
 
 class GedungForm(forms.ModelForm):
     class Meta:
@@ -112,4 +110,21 @@ class GedungForm(forms.ModelForm):
             'kategori': 'Kategori Gedung',
             'fasilitas': 'Fasilitas Utama',
             'deskripsi': 'Deskripsi Gedung'
+        }
+        
+class UlasanForm(forms.ModelForm):
+    class Meta:
+        model = Ulasan
+        fields = ['rating', 'komentar']
+        widgets = {
+            'rating': forms.Select(attrs={'class': 'input-field w-full md:w-auto'}), # Dropdown angka 1-5
+            'komentar': forms.Textarea(attrs={
+                'class': 'input-field', 
+                'rows': 3, 
+                'placeholder': 'Bagikan pengalaman Anda menggunakan jasa WO ini...'
+            }),
+        }
+        labels = {
+            'rating': 'Berikan Rating (Bintang)',
+            'komentar': 'Ulasan Anda'
         }

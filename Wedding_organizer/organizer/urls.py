@@ -7,12 +7,11 @@ urlpatterns = [
     # ==========================================
     path('dashboard/', views.dashboard, name='dashboard'),
     
-    # Kelola Pesanan
+    # Kelola Pesanan (Sisi WO)
     path('kelola-pesanan/', views.kelola_pesanan_view, name='kelola_pesanan'),
     path('pesanan/<int:pesanan_id>/', views.detail_pesanan_view, name='detail_pesanan'),
 
     # Kelola Paket
-    # PERBAIKAN DI SINI: Menggunakan 'views.kelola_paket'
     path('kelola-paket/', views.kelola_paket, name='kelola_paket'),
     path('buat-paket/', views.buat_paket_view, name='buat_paket'), 
     path('edit-paket/<int:paket_id>/', views.edit_paket_view, name='edit_paket'),
@@ -32,8 +31,11 @@ urlpatterns = [
     path('pesanan-berhasil/<int:pesanan_id>/', views.pesanan_berhasil_view, name='pesanan_berhasil'),
     path('batalkan-pesanan/<int:pesanan_id>/', views.batalkan_pesanan_view, name='batalkan_pesanan'),
     
-    # Halaman Pembayaran (Redirect ke Xendit)
+    # Halaman Pembayaran (Integrasi Xendit)
     path('pembayaran/<int:pesanan_id>/', views.halaman_pembayaran_view, name='halaman_pembayaran'),
+
+    # --- TAMBAHAN BARU: FITUR ULASAN ---
+    path('beri-ulasan/<int:pesanan_id>/', views.beri_ulasan_view, name='beri_ulasan'),
 
     # ==========================================
     # WEBHOOK XENDIT

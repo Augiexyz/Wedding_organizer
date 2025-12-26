@@ -95,15 +95,12 @@
     <<!-- 1. SECTION BERANDA (HERO) -->
 <section id="beranda" class="relative h-screen flex items-center justify-center overflow-hidden">
     
-    <!-- VIDEO BACKGROUND -->
     <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover">
         <source src="{% static 'videos/hero.mp4' %}" type="video/mp4">
     </video>
 
-    <!-- OVERLAY -->
     <div class="absolute inset-0 bg-black/40"></div>
 
-    <!-- HERO CONTENT -->
     <div class="relative z-10 text-center text-white px-4 max-w-4xl mx-auto mt-16">
         <span class="uppercase tracking-widest text-xs md:text-sm font-bold bg-white/20 px-4 py-1 rounded-full backdrop-blur-sm border border-white/30 mb-6 inline-block">
             Platform Pernikahan Terpercaya Samarinda
@@ -118,23 +115,15 @@
         </p>
 
         <div class="flex flex-col sm:flex-row justify-center gap-4">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'daftar_wo' %}" class="btn-primary text-lg px-8 py-4 rounded-full shadow-xl hover:shadow-pink-500/50 transition transform hover:-translate-y-1">
-                        Cari Wedding Organizer
-                    </a>
-                    <a href="{% url 'daftar_gedung' %}" class="bg-white text-gray-800 hover:bg-gray-50 font-bold py-4 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center">
-                        <i data-feather="map-pin" class="w-5 h-5 mr-2 text-pink-600"></i> Lihat Gedung
-                    </a>
-                {% else %}
-                    <button onclick="openLoginModal()" class="btn-primary text-lg px-8 py-4 rounded-full shadow-xl hover:shadow-pink-500/50 transition transform hover:-translate-y-1">
-                        Cari Wedding Organizer
-                    </button>
-                    <button onclick="openLoginModal()" class="bg-white text-gray-800 hover:bg-gray-50 font-bold py-4 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center">
-                        <i data-feather="map-pin" class="w-5 h-5 mr-2 text-pink-600"></i> Lihat Gedung
-                    </button>
-                {% endif %}
-            </div>
-    </div>
+            <a href="{% url 'daftar_wo' %}" class="btn-primary text-lg px-8 py-4 rounded-full shadow-xl hover:shadow-pink-500/50 transition transform hover:-translate-y-1 block text-center">
+                Cari Wedding Organizer
+            </a>
+            
+            <a href="{% url 'daftar_gedung' %}" class="bg-white text-gray-800 hover:bg-gray-50 font-bold py-4 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center">
+                <i data-feather="map-pin" class="w-5 h-5 mr-2 text-pink-600"></i> Lihat Gedung
+            </a>
+        </div>
+        </div>
 
 </section>
 

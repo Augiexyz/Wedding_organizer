@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from pengguna.models import ProfilWO
-from organizer.models import Paket, Pesanan, Gedung 
-from django.db.models import Count, Q, Min
+from organizer.models import Paket, Pesanan, Gedung, Ulasan
+from organizer.forms import UlasanForm
+from django.db.models import Count, Q, Min, Avg
 
 def index(request):
     """
@@ -20,21 +22,17 @@ def index(request):
     }
     return render(request, 'beranda/index.html', context)
 
-# --- HALAMAN PUBLIK (TIDAK PERLU LOGIN) ---
-
 def daftar_wo_view(request):
     """
     Halaman daftar Wedding Organizer - PUBLIK
     """
-    # HAPUS pengecekan role & login agar tamu bisa melihat daftar WO
-    
     # Ambil semua WO yang punya setidaknya 1 paket aktif
     profil_wos = ProfilWO.objects.annotate(
         active_paket_count=Count('user__paket_wo', filter=Q(user__paket_wo__is_active=True)),
         jumlah_gedung=Count('user__gedung_wo')
     ).filter(active_paket_count__gt=0).order_by('nama_brand')
 
-    # Logika Pencarian
+    # Logika Pencarian Nama WO
     query = request.GET.get('q')
     if query:
         profil_wos = profil_wos.filter(nama_brand__icontains=query)
@@ -50,14 +48,19 @@ def daftar_gedung_view(request):
     gedungs = Gedung.objects.filter(wo__isnull=False).order_by('-created_at')
 
     # Logika Pencarian
-    query = request.GET.get('q')
-    lokasi = request.GET.get('lokasi')
+    query = request.GET.get('q')     # Cari Nama Gedung
+    jalan = request.GET.get('jalan') # Cari Nama Jalan (Lokasi)
+    lokasi_filter = request.GET.get('lokasi') # Filter Dropdown (jika masih dipakai)
     
     if query:
         gedungs = gedungs.filter(nama_gedung__icontains=query)
     
-    if lokasi and lokasi != 'Filter Lokasi':
-        gedungs = gedungs.filter(lokasi__icontains=lokasi)
+    # REVISI: Pencarian berdasarkan Nama Jalan / Alamat
+    if jalan:
+        gedungs = gedungs.filter(lokasi__icontains=jalan)
+    
+    if lokasi_filter and lokasi_filter != 'Filter Lokasi':
+        gedungs = gedungs.filter(lokasi__icontains=lokasi_filter)
 
     context = {
         'gedungs': gedungs,
@@ -73,7 +76,31 @@ def detail_wo_view(request, wo_id):
     pakets = Paket.objects.filter(wo=profil_wo.user, is_active=True)
     gedungs = Gedung.objects.filter(wo=profil_wo.user).order_by('nama_gedung')
 
-    context = {'profil_wo': profil_wo, 'pakets': pakets, 'gedungs': gedungs}
+    # --- TAMBAHAN: ULASAN ---
+    ulasan_list = Ulasan.objects.filter(wo=profil_wo.user).order_by('-created_at')
+    avg_rating = ulasan_list.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    # Form Ulasan (Opsional jika ingin posting dari sini)
+    if request.method == 'POST' and request.user.is_authenticated:
+        form = UlasanForm(request.POST)
+        if form.is_valid():
+            ulasan = form.save(commit=False)
+            ulasan.wo = profil_wo.user
+            ulasan.penulis = request.user
+            ulasan.save()
+            messages.success(request, "Ulasan Anda berhasil dikirim.")
+            return redirect('detail_wo', wo_id=wo_id)
+    else:
+        form = UlasanForm()
+
+    context = {
+        'profil_wo': profil_wo, 
+        'pakets': pakets, 
+        'gedungs': gedungs,
+        'ulasan_list': ulasan_list,
+        'avg_rating': round(avg_rating, 1),
+        'ulasan_form': form,
+    }
     return render(request, 'beranda/detail_wo.html', context)
 
 def detail_paket_view(request, paket_id):
@@ -81,7 +108,18 @@ def detail_paket_view(request, paket_id):
     Halaman detail paket - PUBLIK
     """
     paket = get_object_or_404(Paket, id=paket_id)
-    context = {'paket': paket}
+    
+    # --- TAMBAHAN: DATA RATING UNTUK PAKET ---
+    # Mengambil ulasan milik WO penyedia paket ini
+    ulasan_list = Ulasan.objects.filter(wo=paket.wo).order_by('-created_at')
+    rating_rata2 = ulasan_list.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    context = {
+        'paket': paket,
+        'rating_rata2': round(rating_rata2, 1),
+        'jumlah_ulasan': ulasan_list.count(),
+        'ulasan_list': ulasan_list # Jika ingin menampilkan ulasan di detail paket juga
+    }
     return render(request, 'beranda/detail_paket.html', context)
 
 def detail_gedung_view(request, gedung_id):
@@ -89,18 +127,17 @@ def detail_gedung_view(request, gedung_id):
     Halaman detail gedung - PUBLIK
     """
     gedung = get_object_or_404(Gedung, id=gedung_id)
-    context = {'gedung': gedung, 'page_title': f'Detail Gedung: {gedung.nama_gedung}'}
+    context = {
+        'gedung': gedung, 
+        'page_title': f'Detail Gedung: {gedung.nama_gedung}'
+    }
     return render(request, 'beranda/detail_gedung.html', context)
-
-
-# --- HALAMAN PRIVAT (BUTUH LOGIN) ---
 
 @login_required
 def status_pesanan_view(request):
     """
-    Halaman customer untuk melihat status pesanan - PRIVAT
+    Halaman customer untuk melihat status pesanan - PRIVAT (BUTUH LOGIN)
     """
-    # Cek apakah user adalah customer
     if not hasattr(request.user, 'profil') or request.user.profil.role != 'customer':
         return redirect('index')
 

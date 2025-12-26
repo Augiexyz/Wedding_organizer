@@ -1,4 +1,3 @@
-{% comment %} pengguna/templates/pengguna/dashboard_wo.html {% endcomment %}
 {% load humanize %}
 <!DOCTYPE html>
 <html lang="id">
@@ -21,43 +20,70 @@
         .btn-primary:hover { background-color: #9D174D; }
         .status-waiting { background-color: #FEF3C7; color: #92400E; }
         .status-confirmed { background-color: #D1FAE5; color: #065F46; }
+        
+        /* Custom Scrollbar untuk ulasan */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #db2777; }
     </style>
 </head>
 <body class="min-h-screen">
     <div class="flex">
-        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg">
-            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+        <!-- Sidebar -->
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:block min-h-screen shadow-lg fixed h-full overflow-y-auto">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">WO-Kita</h1>
             <nav>
                 <ul class="space-y-4">
-                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
-                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
-                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
-                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
-                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
                     <li>
-                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                        <a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 bg-pink-700 text-white font-bold rounded-lg shadow-md">
+                            <i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 hover:text-white transition-colors">
+                            <i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 hover:text-white transition-colors">
+                            <i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 hover:text-white transition-colors">
+                            <i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 hover:text-white transition-colors">
+                            <i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO
+                        </a>
+                    </li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full mt-8">
                             {% csrf_token %}
-                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                            <button type="submit" class="flex items-center w-full p-2 text-red-300 rounded-lg hover:bg-red-900/50 hover:text-red-100 transition-colors text-left">
                                 <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
                             </button>
                         </form>
-                    </li>    
-            </ul>
+                    </li>
+                </ul>
             </nav>
         </aside>
 
-        <main class="flex-1 p-6 md:p-10">
+        <!-- Konten Utama -->
+        <main class="flex-1 p-6 md:p-10 lg:ml-64">
             <header class="mb-8 flex justify-between items-center">
                 <div>
                     <h2 class="text-3xl font-serif-display text-primary-dark">Dashboard</h2>
                     <p class="text-gray-500 mt-1">Selamat datang kembali, {{ profil_wo.nama_brand }}!</p>
                 </div>
-                
             </header>
 
-            <!-- KARTU STATISTIK DINAMIS -->
+            <!-- KARTU STATISTIK -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4 border border-pink-50">
                     <div class="bg-pink-100 p-3 rounded-full">
                         <i data-feather="inbox" class="w-6 h-6 text-pink-600"></i>
                     </div>
@@ -66,7 +92,7 @@
                         <p class="text-2xl font-bold text-primary-dark">{{ pesanan_baru_count }}</p>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4 border border-green-50">
                     <div class="bg-green-100 p-3 rounded-full">
                         <i data-feather="check-circle" class="w-6 h-6 text-green-600"></i>
                     </div>
@@ -75,7 +101,7 @@
                         <p class="text-2xl font-bold text-primary-dark">{{ pesanan_selesai_count }}</p>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4 border border-blue-50">
                     <div class="bg-blue-100 p-3 rounded-full">
                         <i data-feather="dollar-sign" class="w-6 h-6 text-blue-600"></i>
                     </div>
@@ -108,15 +134,81 @@
                             </div>
                         </div>
                         {% empty %}
-                        <p class="text-sm text-gray-500">Belum ada paket yang dipesan.</p>
+                        <p class="text-sm text-gray-500 text-center py-4">Belum ada paket yang dipesan.</p>
                         {% endfor %}
                     </div>
                 </div>
             </div>
             
-            <!-- TABEL PESANAN DINAMIS -->
-            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
-                <h3 class="text-xl font-bold text-primary-dark mb-6">Pesanan Masuk Terbaru</h3>
+            <!-- ULASAN & REPUTASI -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Kartu Skor Rating -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-yellow-50 text-center">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4">Reputasi Vendor</h3>
+                    <div class="text-6xl font-bold text-gray-800 mb-2">{{ rating_rata2 }}</div>
+                    <div class="flex justify-center text-yellow-400 mb-4">
+                        {% for i in "12345" %}
+                            <i data-feather="star" class="w-6 h-6 {% if forloop.counter <= rating_rata2|add:0 %}fill-current{% else %}text-gray-300{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                    <p class="text-gray-500 text-sm">Berdasarkan <strong>{{ ulasan_list.count }}</strong> ulasan pelanggan.</p>
+                </div>
+
+                <!-- Daftar Ulasan Terbaru (DIPERBARUI: NAMA PAKET) -->
+                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-primary-dark">Ulasan Terbaru</h3>
+                        <a href="{% url 'detail_wo' request.user.id %}" class="text-sm text-pink-600 hover:underline">Lihat di Profil Publik</a>
+                    </div>
+                    
+                    <div class="space-y-6 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                        {% for ulasan in ulasan_list %}
+                        <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600 mr-3 text-xs">
+                                        {{ ulasan.penulis.first_name|slice:":1"|default:"U" }}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-800 text-sm">{{ ulasan.penulis.first_name|default:ulasan.penulis.username }}</p>
+                                        <p class="text-[10px] text-gray-400">{{ ulasan.created_at|date:"d M Y" }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex text-yellow-400">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= ulasan.rating %}
+                                            <i data-feather="star" class="w-3 h-3 fill-current"></i>
+                                        {% else %}
+                                            <i data-feather="star" class="w-3 h-3 text-gray-300"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- BAGIAN TAMBAHAN: Nama Paket -->
+                            <!-- Kita asumsikan ulasan terhubung ke Pesanan, jika belum ada relasi langsung, kita perlu ambil via logic di views -->
+                            <!-- Namun, jika model Ulasan belum punya ForeignKey ke Pesanan, kita bisa menampilkan info generik dulu -->
+                            <!-- Jika Anda sudah update model Ulasan agar punya 'paket' atau 'pesanan', kita bisa panggil di sini -->
+                            
+                            <!-- TAMPILKAN KOMENTAR -->
+                            <p class="text-gray-600 text-sm italic mt-1">"{{ ulasan.komentar }}"</p>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-8">
+                            <i data-feather="message-circle" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
+                            <p class="text-gray-500 text-sm">Belum ada ulasan yang masuk.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABEL PESANAN TERBARU -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-primary-dark">Pesanan Masuk Terbaru</h3>
+                    <a href="{% url 'kelola_pesanan' %}" class="text-sm text-pink-600 hover:underline">Lihat Semua</a>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
@@ -130,20 +222,22 @@
                         </thead>
                         <tbody>
                             {% for pesanan in pesanan_terbaru %}
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-4 px-4">{{ pesanan.customer.get_full_name|default:pesanan.customer.username }}</td>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                                <td class="py-4 px-4 font-medium">{{ pesanan.customer.get_full_name|default:pesanan.customer.username }}</td>
                                 <td class="py-4 px-4">{{ pesanan.paket.nama_paket }}</td>
                                 <td class="py-4 px-4">{{ pesanan.tgl_acara|date:"d M Y" }}</td>
                                 <td class="py-4 px-4">
                                     {% if pesanan.status == 'menunggu' %}
-                                        <span class="px-3 py-1 text-xs font-medium rounded-full status-waiting">{{ pesanan.get_status_display }}</span>
+                                        <span class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">Menunggu</span>
                                     {% elif pesanan.status == 'dikonfirmasi' %}
-                                        <span class="px-3 py-1 text-xs font-medium rounded-full status-confirmed">{{ pesanan.get_status_display }}</span>
+                                        <span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">Dikonfirmasi</span>
                                     {% else %}
-                                        <span class="text-gray-600">{{ pesanan.get_status_display }}</span>
+                                        <span class="text-gray-600 text-sm">{{ pesanan.get_status_display }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="py-4 px-4"><a href="{% url 'detail_pesanan' pesanan.id %}" class="text-pink-600 hover:underline font-semibold">Lihat Detail</a></td>
+                                <td class="py-4 px-4">
+                                    <a href="{% url 'detail_pesanan' pesanan.id %}" class="text-pink-600 hover:text-pink-800 font-semibold text-sm">Detail</a>
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -178,7 +272,6 @@
                         hoverBackgroundColor: 'rgba(157, 23, 77, 0.7)'
                     }]
                 },
-                // --- BAGIAN YANG DIPERBAIKI ---
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -193,16 +286,12 @@
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
+                                    if (label) label += ': ';
                                     if (context.parsed.y !== null) {
                                         label += new Intl.NumberFormat('id-ID', {
                                             style: 'currency',
