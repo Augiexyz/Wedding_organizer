@@ -4,7 +4,6 @@ from django.utils import timezone
 
 # --- MODEL PAKET ---
 class Paket(models.Model):
-    # Pilihan Kategori untuk Paket (Logika Baru)
     KATEGORI_PAKET_CHOICES = [
         ('non_gedung', '❌ Tanpa Gedung / Venue Bebas'),
         ('S', '🏢 Gedung Small (S)'),
@@ -19,8 +18,6 @@ class Paket(models.Model):
     foto = models.ImageField(upload_to='paket_fotos/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     
-    # PERUBAHAN UTAMA:
-    # Paket sekarang menyimpan KATEGORI, bukan gedung spesifik
     kategori_gedung = models.CharField(
         max_length=20, 
         choices=KATEGORI_PAKET_CHOICES, 
@@ -56,7 +53,6 @@ class Gedung(models.Model):
     foto_gedung = models.ImageField(upload_to='gedung_photos/', null=True, blank=True)
     deskripsi = models.TextField(null=True, blank=True)
     
-    # Kategori ini nanti akan dicocokkan dengan Paket
     kategori = models.CharField(max_length=1, choices=KATEGORI_CHOICES, default='M')
     fasilitas = models.TextField(null=True, blank=True)
 
@@ -69,7 +65,6 @@ class Gedung(models.Model):
 class Pesanan(models.Model):
     STATUS_CHOICES = (
         ('menunggu', 'Menunggu Konfirmasi'),
-        # PERBAIKAN: Hapus "(Belum Bayar)" agar tidak membingungkan
         ('dikonfirmasi', 'Dikonfirmasi'), 
         ('disiapkan', 'Sedang Disiapkan'), 
         ('selesai', 'Selesai'),
@@ -80,7 +75,6 @@ class Pesanan(models.Model):
         ('lunas', 'Lunas'),
     )
 
-    # ... (sisa field tetap sama) ...
     paket = models.ForeignKey(Paket, on_delete=models.CASCADE)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     gedung_dipilih = models.ForeignKey(Gedung, on_delete=models.SET_NULL, null=True, blank=True, related_name='pesanan_gedung')
@@ -100,26 +94,29 @@ class Pesanan(models.Model):
 
     def __str__(self):
         return f"Pesanan {self.paket.nama_paket} oleh {self.customer.username}"
-    
+
 # --- MODEL GALERI ---
 class FotoPortofolio(models.Model):
     paket = models.ForeignKey(Paket, related_name='galeri', on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='galeri_paket/')
-    
+
+# --- MODEL GALERI GEDUNG ---
 class FotoGedung(models.Model):
     gedung = models.ForeignKey(Gedung, on_delete=models.CASCADE, related_name='galeri_gedung')
     foto = models.ImageField(upload_to='gedung_galeri/')
 
     def __str__(self):
         return f"Foto untuk {self.gedung.nama_gedung}"
-    
+
+# --- MODEL ULASAN ---
 class Ulasan(models.Model):
     wo = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ulasan_wo')
     penulis = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='penulis_ulasan')
     
-    # --- FIELD BARU: KUNCI AGAR 1 PESANAN = 1 ULASAN ---
+    # PERBAIKAN UNTUK DATA LAMA:
+    # 1. Gunakan OneToOneField agar unik (1 pesanan = 1 ulasan)
+    # 2. Tetapkan null=True, blank=True agar data lama yang kosong tidak error saat migrasi
     pesanan = models.OneToOneField(Pesanan, on_delete=models.CASCADE, null=True, blank=True, related_name='data_ulasan')
-    # ---------------------------------------------------
     
     rating = models.IntegerField(default=5, choices=[(i, i) for i in range(1, 6)])
     komentar = models.TextField()

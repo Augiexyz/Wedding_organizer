@@ -15,15 +15,13 @@ from django.utils import timezone
 from django.db.models import Avg
 
 # Import Forms
-# PERBAIKAN: Pastikan UlasanForm diimpor
 from .forms import GedungForm, PaketForm, PesananForm, UlasanForm
 
 # Import Models
-# PERBAIKAN: Pastikan Ulasan diimpor
 from .models import Gedung, Paket, Pesanan, FotoPortofolio, FotoGedung, Ulasan
 
 # ==========================================
-# 1. DASHBOARD & ADMIN
+# 1. DASHBOARD
 # ==========================================
 @login_required
 def dashboard(request):
@@ -45,7 +43,6 @@ def dashboard(request):
     pesanan_terbaru = Pesanan.objects.filter(paket__wo=request.user).order_by('-tgl_pesan')[:5]
     paket_populer = Paket.objects.filter(wo=request.user)[:3]
 
-    # Data Ulasan untuk Dashboard
     ulasan_list = Ulasan.objects.filter(wo=request.user).order_by('-created_at')
     rating_rata2 = ulasan_list.aggregate(Avg('rating'))['rating__avg'] or 0
 
@@ -210,6 +207,7 @@ def detail_pesanan_view(request, pesanan_id):
         return redirect('kelola_pesanan')
     return render(request, 'organizer/detail_pesanan.html', {'pesanan': pesanan, 'page_title': f'Detail Pesanan #{pesanan.id}'})
 
+
 # ==========================================
 # 5. SISI CUSTOMER (ORDER & PAY - XENDIT DIRECT API)
 # ==========================================
@@ -248,9 +246,6 @@ def batalkan_pesanan_view(request, pesanan_id):
 
 @login_required
 def halaman_pembayaran_view(request, pesanan_id):
-    """
-    MEMBUAT INVOICE XENDIT - DIRECT API (REQUESTS)
-    """
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.customer != request.user: return redirect('index')
     if pesanan.status_pembayaran == 'lunas': return redirect('status_pesanan')
@@ -264,14 +259,9 @@ def halaman_pembayaran_view(request, pesanan_id):
             api_key = settings.XENDIT_SECRET_KEY
             auth_string = f"{api_key}:"
             auth_header = base64.b64encode(auth_string.encode('utf-8')).decode('utf-8')
-            
-            headers = {
-                "Authorization": f"Basic {auth_header}",
-                "Content-Type": "application/json"
-            }
+            headers = {"Authorization": f"Basic {auth_header}", "Content-Type": "application/json"}
 
             external_id = f"ORDER-{pesanan.id}-{int(timezone.now().timestamp())}"
-            # URL Ngrok (GANTI SESUAI TERMINAL ANDA)
             BASE_URL = "https://prevocalically-trivial-archimedes.ngrok-free.dev" 
             
             payload = {
@@ -279,16 +269,12 @@ def halaman_pembayaran_view(request, pesanan_id):
                 "amount": total_pembayaran,
                 "description": f"Pembayaran {pesanan.paket.nama_paket}",
                 "payer_email": request.user.email if request.user.email else "customer@wokita.com",
-                "customer": {
-                    "given_names": pesanan.nama_pasangan or "Pelanggan",
-                    "mobile_number": pesanan.telepon or "08123456789"
-                },
+                "customer": {"given_names": pesanan.nama_pasangan or "Pelanggan", "mobile_number": pesanan.telepon or "08123456789"},
                 "success_redirect_url": f"{BASE_URL}/organizer/pesanan-berhasil/{pesanan.id}/",
                 "failure_redirect_url": f"{BASE_URL}/organizer/pembayaran/{pesanan.id}/"
             }
 
             response = requests.post(url, json=payload, headers=headers)
-            
             if response.status_code == 200 or response.status_code == 201:
                 response_data = response.json()
                 return redirect(response_data['invoice_url'])
@@ -327,7 +313,7 @@ def xendit_webhook(request):
 
 
 # ==========================================
-# 6. FITUR ULASAN (BARU)
+# 6. FITUR ULASAN (PERBAIKAN REDIRECT & SATU KALI REVIEW)
 # ==========================================
 
 @login_required
@@ -347,16 +333,26 @@ def beri_ulasan_view(request, pesanan_id):
         messages.error(request, "Anda baru bisa memberikan ulasan setelah pesanan selesai.")
         return redirect('status_pesanan')
 
-    # 3. Proses Form
+    # 3. Validasi Duplikasi: Cek apakah sudah pernah diulas
+    # Menggunakan related_name 'data_ulasan' dari model Ulasan (OneToOneField)
+    if hasattr(pesanan, 'data_ulasan'):
+        messages.warning(request, "Anda sudah memberikan ulasan untuk pesanan ini.")
+        return redirect('status_pesanan')
+
+    # 4. Proses Form
     if request.method == 'POST':
         form = UlasanForm(request.POST)
         if form.is_valid():
             ulasan = form.save(commit=False)
             ulasan.wo = pesanan.paket.wo # Ulasan ditujukan ke WO ini
             ulasan.penulis = request.user
+            ulasan.pesanan = pesanan  # HUBUNGKAN PESANAN AGAR TIDAK BISA REVIEW LAGI
             ulasan.save()
+            
             messages.success(request, "Terima kasih! Ulasan Anda berhasil dikirim.")
-            return redirect('detail_wo', wo_id=pesanan.paket.wo.id) # Arahkan ke profil WO
+            
+            # --- PERBAIKAN: Redirect ke halaman status pesanan (bukan profil WO) ---
+            return redirect('status_pesanan') 
     else:
         form = UlasanForm()
 
