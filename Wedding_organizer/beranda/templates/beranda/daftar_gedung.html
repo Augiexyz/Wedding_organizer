@@ -5,22 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galeri Gedung - Wedding Organizer Samarinda</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
         .bg-primary-dark { background-color: #831843; }
-        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary { background-color: #DB2777; color: white; transition: 0.3s; }
         .btn-primary:hover { background-color: #9D174D; }
         .btn-outline {
             background-color: transparent;
@@ -62,8 +55,6 @@
             <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
                     <span class="text-gray-700 hidden sm:block">Halo, {{ user.first_name|default:user.username }}!</span>
-                    
-                    <!-- Link Logout -->
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
                         <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
@@ -81,31 +72,26 @@
         <!-- Judul & Deskripsi -->
         <div class="text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-serif-display text-primary-dark">Galeri Gedung Rekomendasi</h1>
-            <p class="text-gray-500 mt-3 max-w-2xl mx-auto">Lihat berbagai pilihan gedung yang direkomendasikan oleh Wedding Organizer partner kami.</p>
+            <p class="text-gray-500 mt-3 max-w-2xl mx-auto">Temukan lokasi pernikahan impian di sekitar Anda.</p>
         </div>
 
         <!-- Filter Bar (Form Pencarian) -->
         <div class="bg-white p-4 rounded-xl shadow-md mb-8 sticky top-24 z-40">
             <form method="GET" action="{% url 'daftar_gedung' %}">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-                    <!-- Input Pencarian Nama -->
-                    <div class="lg:col-span-2">
-                        <input type="text" name="q" placeholder="Cari nama gedung..." value="{{ request.GET.q }}" class="input-filter">
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                     
-                    <!-- Filter Lokasi (Sederhana) -->
-                    <select name="lokasi" class="input-filter">
-                        <option value="" disabled selected>Filter Lokasi</option>
-                        <option value="Jakarta">Jakarta</option>
-                        <option value="Bandung">Bandung</option>
-                        <option value="Bali">Bali</option>
-                        <option value="Samarinda">Samarinda</option>
-                        <option value="Surabaya">Surabaya</option>
-                    </select>
+                    <!-- 1. Cari Nama Gedung -->
+                    <input type="text" name="q" placeholder="Cari nama gedung..." value="{{ request.GET.q }}" class="input-filter">
+                    
+                    <!-- 2. Cari Nama Jalan (Input Baru) -->
+                    <div class="relative">
+                        <input type="text" name="jalan" placeholder="Masukkan nama jalan..." value="{{ request.GET.jalan }}" class="input-filter pl-10">
+                        <i data-feather="map-pin" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
+                    </div>
 
-                    <!-- Tombol Cari -->
+                    <!-- 3. Tombol Cari -->
                     <button type="submit" class="btn-primary font-bold py-2 rounded-lg w-full">
-                        Cari Gedung
+                        Temukan Gedung
                     </button>
                 </div>
             </form>
@@ -115,13 +101,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
             {% for gedung in gedungs %}
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300">
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full relative">
                 <!-- Foto Gedung -->
                 <div class="h-56 overflow-hidden bg-gray-200 relative">
                     {% if gedung.foto_gedung %}
-                        <img src="{{ gedung.foto_gedung.url }}" alt="{{ gedung.nama_gedung }}" class="w-full h-full object-cover">
+                        <img src="{{ gedung.foto_gedung.url }}" alt="{{ gedung.nama_gedung }}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
                     {% else %}
-                        <img src="https://placehold.co/400x224/FDF2F8/831843?text=Foto+Gedung" alt="Placeholder" class="w-full h-full object-cover">
+                        <img src="https://placehold.co/400x224/FDF2F8/831843?text=Foto+Gedung" class="w-full h-full object-cover">
                     {% endif %}
                     
                     <!-- Badge Kategori -->
@@ -132,24 +118,27 @@
                     </div>
                 </div>
 
-                <div class="p-6">
+                <div class="p-6 flex flex-col flex-grow">
                     <h3 class="text-2xl font-serif-display text-primary-dark truncate">{{ gedung.nama_gedung }}</h3>
                     
                     <!-- Info WO Penyedia -->
                     <p class="text-sm text-gray-500 mb-3 mt-1">
-    Oleh: 
-    {% if gedung.wo %}
-        <a href="{% url 'detail_wo' gedung.wo.id %}" class="font-bold text-pink-700 hover:underline">
-            {{ gedung.wo.profilwo.nama_brand|default:gedung.wo.username }}
-        </a>
-    {% else %}
-        <span class="font-bold text-gray-400">
-            Admin / Tanpa WO
-        </span>
-    {% endif %}
-</p>
+                        Oleh: 
+                        {% if gedung.wo %}
+                            <a href="{% url 'detail_wo' gedung.wo.id %}" class="font-bold text-pink-700 hover:underline">
+                                {{ gedung.wo.profilwo.nama_brand|default:gedung.wo.username }}
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400 italic">WO Tidak Tersedia</span>
+                        {% endif %}
+                    </p>
                     
-                    <div class="flex justify-between items-center text-sm text-gray-700 border-t pt-4">
+                    <p class="text-gray-500 text-sm flex items-start mb-4">
+                        <i data-feather="map-pin" class="w-4 h-4 mr-2 text-pink-500 mt-1 flex-shrink-0"></i>
+                        {{ gedung.lokasi|truncatechars:40 }}
+                    </p>
+                    
+                    <div class="flex justify-between items-center text-sm text-gray-700 border-t pt-4 mt-auto">
                         <span class="flex items-center" title="Kapasitas">
                             <i data-feather="users" class="w-4 h-4 mr-2 text-gray-400"></i>
                             {{ gedung.kapasitas }}
@@ -159,8 +148,8 @@
                         </span>
                     </div>
                     
-                    <!-- Tombol Lihat Detail Gedung (LINK DIPERBAIKI) -->
-                    <a href="{% url 'detail_gedung' gedung.id %}" class="w-full mt-4 btn-outline font-semibold py-2 px-4 rounded-lg inline-block text-center">
+                    <!-- Tombol Lihat Detail Gedung -->
+                    <a href="{% url 'detail_gedung' gedung.id %}" class="w-full mt-4 btn-outline font-semibold py-2 px-4 rounded-lg inline-block text-center hover:bg-pink-600 hover:text-white transition duration-300">
                         Lihat Detail
                     </a>
                 </div>

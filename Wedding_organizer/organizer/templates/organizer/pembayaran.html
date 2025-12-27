@@ -18,7 +18,6 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
             <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600 flex items-center transition font-medium">
@@ -45,11 +44,21 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Rincian Tagihan</h3>
                     
+                    <!-- 1. Harga Paket -->
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-gray-600">Paket: {{ pesanan.paket.nama_paket }}</span>
                         <span class="font-medium text-gray-900">Rp {{ pesanan.paket.harga|intcomma }}</span>
                     </div>
 
+                    <!-- 2. Harga Gedung (HANYA MUNCUL JIKA ADA GEDUNG DIPILIH) -->
+                    {% if pesanan.gedung_dipilih %}
+                    <div class="flex justify-between items-center mb-3 text-sm bg-pink-50 p-2 rounded-lg text-pink-800">
+                        <span>Sewa Gedung: <br><small class="font-bold">{{ pesanan.gedung_dipilih.nama_gedung }}</small></span>
+                        <span class="font-medium">Rp {{ pesanan.gedung_dipilih.harga_sewa|intcomma }}</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- 3. Biaya Layanan -->
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-gray-600">Biaya Layanan & Keamanan</span>
                         <span class="font-medium text-gray-900">Rp {{ biaya_layanan|intcomma }}</span>
@@ -57,6 +66,7 @@
 
                     <div class="border-t border-dashed border-gray-300 my-4"></div>
 
+                    <!-- 4. Total -->
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-bold text-primary-dark">Total Pembayaran</span>
                         <span class="text-2xl font-bold text-pink-600">Rp {{ total_pembayaran|intcomma }}</span>
@@ -71,7 +81,7 @@
                     <div>
                         <h4 class="font-bold text-blue-800 text-sm">Jaminan Uang Kembali</h4>
                         <p class="text-xs text-blue-700 mt-1">
-                            Dana Anda aman di rekening bersama (Escrow) Wedding Organizer Samarinda. Dana baru akan diteruskan ke Vendor setelah acara selesai.
+                            Dana Anda aman di rekening bersama (Escrow) WO-Kita. Dana baru akan diteruskan ke Vendor setelah acara selesai.
                         </p>
                     </div>
                 </div>
@@ -90,7 +100,7 @@
                 </div>
 
                 <!-- FORM PEMBAYARAN UTAMA -->
-                <!-- Form ini akan mengirim POST request ke views.py, yang kemudian akan redirect ke Xendit -->
+                <!-- Form ini mengirim POST ke views.py, yang kemudian mengontak Xendit -->
                 <form method="POST">
                     {% csrf_token %}
                     
@@ -109,10 +119,9 @@
                         Bayar Sekarang
                     </button>
                     
-                    <div class="mt-4 flex justify-center items-center space-x-2">
-                        <span class="text-xs text-gray-400">Powered by</span>
-                        <span class="text-xs font-bold text-gray-500 tracking-wider">xendit</span>
-                    </div>
+                    <p class="text-xs text-center text-gray-400 mt-4">
+                        Transaksi dienkripsi dan diproses oleh Payment Gateway Xendit.
+                    </p>
                 </form>
             </div>
 

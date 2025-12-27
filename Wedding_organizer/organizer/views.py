@@ -21,7 +21,7 @@ from .forms import GedungForm, PaketForm, PesananForm, UlasanForm
 from .models import Gedung, Paket, Pesanan, FotoPortofolio, FotoGedung, Ulasan
 
 # ==========================================
-# 1. DASHBOARD
+# 1. DASHBOARD & ADMIN
 # ==========================================
 @login_required
 def dashboard(request):
@@ -35,7 +35,11 @@ def dashboard(request):
     pendapatan_total = 0
     pesanan_selesai = Pesanan.objects.filter(paket__wo=request.user, status='selesai')
     for p in pesanan_selesai:
-        pendapatan_total += p.paket.harga
+        # Hitung total pendapatan termasuk gedung jika ada
+        total_pesanan = p.paket.harga
+        if p.gedung_dipilih:
+            total_pesanan += p.gedung_dipilih.harga_sewa
+        pendapatan_total += total_pesanan
 
     chart_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'] 
     chart_data = [0, 0, 0, 0, 0, int(pendapatan_total / 1000000)] 
@@ -209,8 +213,9 @@ def detail_pesanan_view(request, pesanan_id):
 
 
 # ==========================================
-# 5. SISI CUSTOMER (ORDER & PAY - XENDIT DIRECT API)
+# 5. SISI CUSTOMER & PEMBAYARAN (XENDIT DIRECT API)
 # ==========================================
+
 @login_required
 def buat_pesanan_view(request, paket_id):
     paket = get_object_or_404(Paket, id=paket_id)
@@ -223,7 +228,7 @@ def buat_pesanan_view(request, paket_id):
             pesanan.customer = request.user
             pesanan.status = 'menunggu'
             pesanan.save()
-            messages.success(request, "Pesanan terkirim!")
+            messages.success(request, "Pesanan berhasil dikirim! Menunggu konfirmasi WO.")
             return redirect('pesanan_berhasil', pesanan_id=pesanan.id)
     else:
         form = PesananForm(paket=paket)
@@ -246,12 +251,23 @@ def batalkan_pesanan_view(request, pesanan_id):
 
 @login_required
 def halaman_pembayaran_view(request, pesanan_id):
+    """
+    MEMBUAT INVOICE XENDIT - HITUNG TOTAL DENGAN BENAR
+    """
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.customer != request.user: return redirect('index')
     if pesanan.status_pembayaran == 'lunas': return redirect('status_pesanan')
     
     biaya_layanan = 5000
-    total_pembayaran = int(pesanan.paket.harga + biaya_layanan)
+    
+    # --- PERBAIKAN LOGIKA HITUNG HARGA ---
+    harga_paket = pesanan.paket.harga
+    harga_gedung = 0
+    if pesanan.gedung_dipilih:
+        harga_gedung = pesanan.gedung_dipilih.harga_sewa
+        
+    total_pembayaran = int(harga_paket + harga_gedung + biaya_layanan)
+    # -------------------------------------
 
     if request.method == 'POST':
         try:
@@ -259,28 +275,37 @@ def halaman_pembayaran_view(request, pesanan_id):
             api_key = settings.XENDIT_SECRET_KEY
             auth_string = f"{api_key}:"
             auth_header = base64.b64encode(auth_string.encode('utf-8')).decode('utf-8')
-            headers = {"Authorization": f"Basic {auth_header}", "Content-Type": "application/json"}
+            
+            headers = {
+                "Authorization": f"Basic {auth_header}",
+                "Content-Type": "application/json"
+            }
 
             external_id = f"ORDER-{pesanan.id}-{int(timezone.now().timestamp())}"
+            # URL Ngrok (GANTI SESUAI TERMINAL ANDA)
             BASE_URL = "https://prevocalically-trivial-archimedes.ngrok-free.dev" 
             
             payload = {
                 "external_id": external_id,
-                "amount": total_pembayaran,
+                "amount": total_pembayaran, # Total yang sudah benar
                 "description": f"Pembayaran {pesanan.paket.nama_paket}",
                 "payer_email": request.user.email if request.user.email else "customer@wokita.com",
-                "customer": {"given_names": pesanan.nama_pasangan or "Pelanggan", "mobile_number": pesanan.telepon or "08123456789"},
+                "customer": {
+                    "given_names": pesanan.nama_pasangan or "Pelanggan",
+                    "mobile_number": pesanan.telepon or "08123456789"
+                },
                 "success_redirect_url": f"{BASE_URL}/organizer/pesanan-berhasil/{pesanan.id}/",
                 "failure_redirect_url": f"{BASE_URL}/organizer/pembayaran/{pesanan.id}/"
             }
 
             response = requests.post(url, json=payload, headers=headers)
+            
             if response.status_code == 200 or response.status_code == 201:
                 response_data = response.json()
                 return redirect(response_data['invoice_url'])
             else:
                 print("Xendit Error:", response.text)
-                messages.error(request, f"Gagal membuat invoice: {response.text}")
+                messages.error(request, "Gagal membuat invoice. Cek log.")
                 return redirect('status_pesanan')
 
         except Exception as e:
@@ -305,60 +330,32 @@ def xendit_webhook(request):
                 if pesanan.status_pembayaran != 'lunas':
                     pesanan.status_pembayaran = 'lunas'
                     pesanan.save()
-                    print(f"✅ WEBHOOK: Pesanan #{pesanan_id} LUNAS!")
             return HttpResponse(status=200)
         except Exception:
             return HttpResponse(status=400)
     return HttpResponse(status=405)
 
 
-# ==========================================
-# 6. FITUR ULASAN (PERBAIKAN REDIRECT & SATU KALI REVIEW)
-# ==========================================
-
 @login_required
 def beri_ulasan_view(request, pesanan_id):
-    """
-    View untuk Customer memberikan ulasan setelah pesanan selesai.
-    """
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
-
-    # 1. Validasi Pemilik Pesanan
     if pesanan.customer != request.user:
-        messages.error(request, "Anda tidak memiliki akses ke pesanan ini.")
         return redirect('index')
-
-    # 2. Validasi Status Pesanan (Harus Selesai)
     if pesanan.status != 'selesai':
-        messages.error(request, "Anda baru bisa memberikan ulasan setelah pesanan selesai.")
         return redirect('status_pesanan')
-
-    # 3. Validasi Duplikasi: Cek apakah sudah pernah diulas
-    # Menggunakan related_name 'data_ulasan' dari model Ulasan (OneToOneField)
     if hasattr(pesanan, 'data_ulasan'):
-        messages.warning(request, "Anda sudah memberikan ulasan untuk pesanan ini.")
         return redirect('status_pesanan')
 
-    # 4. Proses Form
     if request.method == 'POST':
         form = UlasanForm(request.POST)
         if form.is_valid():
             ulasan = form.save(commit=False)
-            ulasan.wo = pesanan.paket.wo # Ulasan ditujukan ke WO ini
+            ulasan.wo = pesanan.paket.wo
             ulasan.penulis = request.user
-            ulasan.pesanan = pesanan  # HUBUNGKAN PESANAN AGAR TIDAK BISA REVIEW LAGI
+            ulasan.pesanan = pesanan
             ulasan.save()
-            
-            messages.success(request, "Terima kasih! Ulasan Anda berhasil dikirim.")
-            
-            # --- PERBAIKAN: Redirect ke halaman status pesanan (bukan profil WO) ---
-            return redirect('status_pesanan') 
+            messages.success(request, "Ulasan terkirim!")
+            return redirect('status_pesanan')
     else:
         form = UlasanForm()
-
-    context = {
-        'form': form,
-        'pesanan': pesanan,
-        'page_title': 'Beri Ulasan'
-    }
-    return render(request, 'organizer/beri_ulasan.html', context)
+    return render(request, 'organizer/beri_ulasan.html', {'form': form, 'pesanan': pesanan, 'page_title': 'Beri Ulasan'})
