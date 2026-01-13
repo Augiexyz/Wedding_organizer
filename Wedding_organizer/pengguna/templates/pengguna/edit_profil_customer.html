@@ -1,0 +1,129 @@
+{% comment %} pengguna/templates/pengguna/edit_profil_customer.html {% endcomment %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profil - Wedding Organizer Samarinda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+        .input-field { border: 1px solid #ddd; padding: 0.75rem 1rem; border-radius: 0.5rem; width: 100%; transition: all 0.2s ease; }
+        .input-field:focus { outline: none; border-color: #DB2777; box-shadow: 0 0 0 2px #F9A8D4; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{% url 'daftar_wo' %}" class="text-2xl font-serif-display text-primary-dark font-bold">Wedding Organizer Samarinda</a>
+            <div class="hidden lg:flex items-center space-x-6">
+                <a href="{% url 'daftar_wo' %}" class="text-gray-600 hover:text-pink-600">Daftar WO</a>
+                <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600">Status Pesanan</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-700 hidden sm:block">Halo, {{ request.user.first_name|default:request.user.username }}!</span>
+                <a href="{% url 'edit_profil_customer' %}" class="text-pink-600" title="Edit Profil"><i data-feather="user"></i></a>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+    {% csrf_token %}
+    <button type="submit" class="text-gray-500 hover:text-primary-dark" title="Logout">
+        <i data-feather="log-out"></i>
+    </button>
+</form>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6 md:p-10">
+        <div class="max-w-2xl mx-auto">
+            <div class="mb-10">
+                <h1 class="text-4xl font-serif-display text-primary-dark">Edit Profil Anda</h1>
+                <p class="text-gray-500 mt-1">Perbarui informasi akun Anda di sini.</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-4 mb-6 text-sm text-green-700 bg-green-100 rounded-lg shadow" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <!-- Form Informasi Pribadi -->
+                <form method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <h3 class="text-lg font-bold text-primary-dark border-b pb-2 mb-4">Informasi Pribadi</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="{{ user_form.nama_lengkap.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                                {{ user_form.nama_lengkap }}
+                                {% for error in user_form.nama_lengkap.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                            </div>
+                            <div>
+                                <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Alamat Email</label>
+                                {{ user_form.email }}
+                                <p class="text-xs text-gray-500 mt-1">Email tidak dapat diubah.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-4 text-right">
+                        <button type="submit" name="update_profile" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg">
+                            Simpan Info Pribadi
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-8">
+
+                <!-- Form Ubah Password -->
+                <form method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <h3 class="text-lg font-bold text-primary-dark border-b pb-2 mb-4">Ubah Password</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="{{ password_form.old_password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Password Saat Ini</label>
+                                {{ password_form.old_password }}
+                                {% for error in password_form.old_password.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                            </div>
+                            <div>
+                                <label for="{{ password_form.new_password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+                                {{ password_form.new_password1 }}
+                                {% for error in password_form.new_password1.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                            </div>
+                            <div>
+                                <label for="{{ password_form.new_password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
+                                {{ password_form.new_password2 }}
+                                {% for error in password_form.new_password2.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-4 text-right">
+                        <button type="submit" name="change_password" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg">
+                            Ubah Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

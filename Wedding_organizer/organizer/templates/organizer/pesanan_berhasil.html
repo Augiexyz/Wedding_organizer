@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesanan Berhasil - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .bg-primary-dark { background-color: #831843; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-10 relative">
+        
+        <!-- Dekorasi Latar Belakang -->
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-400 to-purple-500"></div>
+
+        <!-- Ikon Sukses Animasi -->
+        <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-100 mb-6 animate-bounce">
+            <i data-feather="check" class="h-12 w-12 text-green-600"></i>
+        </div>
+
+        <h2 class="text-3xl font-serif-display font-bold text-gray-900 mb-2">Pesanan Diterima!</h2>
+        <p class="text-gray-500 mb-8">Terima kasih telah mempercayakan momen spesial Anda kepada kami.</p>
+
+        <!-- Kartu Detail Ringkas -->
+        <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left border border-gray-100">
+            <div class="flex justify-between mb-3">
+                <span class="text-sm text-gray-500">ID Pesanan</span>
+                <span class="text-sm font-mono font-bold text-gray-800">#{{ pesanan.id }}</span>
+            </div>
+            <div class="flex justify-between mb-3">
+                <span class="text-sm text-gray-500">Paket</span>
+                <span class="text-sm font-bold text-primary-dark">{{ pesanan.paket.nama_paket }}</span>
+            </div>
+            <div class="flex justify-between mb-3">
+                <span class="text-sm text-gray-500">Tanggal Acara</span>
+                <span class="text-sm font-medium text-gray-800">{{ pesanan.tgl_acara|date:"d F Y" }}</span>
+            </div>
+            
+            {% if pesanan.gedung_dipilih %}
+            <div class="flex justify-between border-t border-gray-200 pt-3 mt-3">
+                <span class="text-sm text-gray-500">Gedung</span>
+                <span class="text-sm font-bold text-pink-600">{{ pesanan.gedung_dipilih.nama_gedung }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="space-y-3">
+            <a href="{% url 'status_pesanan' %}" class="block w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-pink-200">
+                Lihat Status Pesanan
+            </a>
+            <a href="{% url 'index' %}" class="block w-full bg-white hover:bg-gray-50 text-gray-600 font-semibold py-3 px-4 rounded-xl transition border border-gray-200">
+                Kembali ke Beranda
+            </a>
+        </div>
+
+        <p class="text-xs text-gray-400 mt-8">
+            Pihak WO akan segera menghubungi Anda melalui WhatsApp untuk konfirmasi lebih lanjut.
+        </p>
+    </div>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

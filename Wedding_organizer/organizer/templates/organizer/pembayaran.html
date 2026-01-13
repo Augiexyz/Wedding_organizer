@@ -1,0 +1,118 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+        .text-primary-dark { color: #831843; }
+        .btn-primary { background-color: #DB2777; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #9D174D; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="{% url 'status_pesanan' %}" class="text-gray-600 hover:text-pink-600 flex items-center transition font-medium">
+                <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
+                Kembali
+            </a>
+            <div class="flex items-center space-x-2">
+                <i data-feather="credit-card" class="w-4 h-4 text-green-600"></i>
+                <span class="text-sm font-bold text-gray-700">Pembayaran Transfer Bank</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6 md:p-10 flex-grow flex items-center justify-center">
+        <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            
+            <!-- Kolom Kiri: Rincian Tagihan -->
+            <div class="space-y-6">
+                <div>
+                    <h1 class="text-3xl font-serif-display text-primary-dark mb-2">Selesaikan Pembayaran</h1>
+                    <p class="text-gray-500">Silakan transfer sesuai nominal di bawah ini.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Rincian Tagihan</h3>
+                    
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-600">Paket: {{ pesanan.paket.nama_paket }}</span>
+                        <span class="font-medium text-gray-900">Rp {{ pesanan.paket.harga|intcomma }}</span>
+                    </div>
+
+                    {% if pesanan.gedung_dipilih %}
+                    <div class="flex justify-between items-center mb-3 text-sm bg-pink-50 p-2 rounded-lg text-pink-800">
+                        <span>Sewa Gedung: <br><small class="font-bold">{{ pesanan.gedung_dipilih.nama_gedung }}</small></span>
+                        <span class="font-medium">Rp {{ pesanan.gedung_dipilih.harga_sewa|intcomma }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-600">Biaya Layanan</span>
+                        <span class="font-medium text-gray-900">Rp {{ biaya_layanan|intcomma }}</span>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-primary-dark">Total Transfer</span>
+                        <span class="text-2xl font-bold text-pink-600">Rp {{ total_pembayaran|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Rekening & Konfirmasi -->
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-24">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Transfer ke Rekening Ini</h3>
+                </div>
+
+                <!-- Informasi Rekening (Statis/Manual) -->
+                <div class="space-y-4 mb-8">
+                    <div class="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-gray-800">Bank BCA</p>
+                            <p class="text-sm text-gray-500">A.N. WO Kita Official</p>
+                        </div>
+                        <p class="font-mono font-bold text-lg text-primary-dark">123-456-7890</p>
+                    </div>
+                    <div class="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-gray-800">Bank Mandiri</p>
+                            <p class="text-sm text-gray-500">A.N. WO Kita Official</p>
+                        </div>
+                        <p class="font-mono font-bold text-lg text-primary-dark">987-654-3210</p>
+                    </div>
+                </div>
+
+                <!-- Form Konfirmasi -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <p class="text-xs text-gray-500 mb-4 text-center">
+                        Setelah transfer, klik tombol di bawah untuk konfirmasi pembayaran Anda.
+                    </p>
+
+                    <button type="submit" class="w-full btn-primary py-4 px-6 rounded-xl font-bold text-lg shadow-lg shadow-pink-200 hover:shadow-pink-300 transform hover:-translate-y-1 transition-all flex justify-center items-center">
+                        <i data-feather="check-circle" class="w-5 h-5 mr-2"></i>
+                        Saya Sudah Transfer
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

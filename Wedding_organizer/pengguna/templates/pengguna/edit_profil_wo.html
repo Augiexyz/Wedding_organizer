@@ -1,0 +1,284 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profil Wedding Organizer - Wedding Organizer Samarinda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDF2F8;
+        }
+        .font-serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+        .bg-primary-dark { background-color: #831843; }
+        .text-primary-dark { color: #831843; }
+        
+        .btn-primary {
+            background-color: #DB2777;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #9D174D;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.3);
+        }
+
+        /* --- STYLING INPUT FORM --- */
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            background-color: #ffffff;
+            transition: all 0.2s;
+        }
+
+        /* Padding khusus untuk input yang memiliki ikon di kirinya */
+        .input-with-icon input,
+        .input-with-icon textarea {
+            padding-left: 3rem !important; /* Geser teks agar tidak menabrak ikon */
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #DB2777;
+            box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+    <div class="flex min-h-screen">
+        
+        <aside class="w-64 bg-primary-dark text-white p-6 hidden lg:flex flex-col shadow-lg sticky top-0 h-screen">
+            <h1 class="text-2xl font-serif-display font-bold mb-8">Wedding Organizer Samarinda</h1>
+            <nav class="flex flex-col flex-grow">
+                <ul class="space-y-4 flex-grow">
+                    <li><a href="{% url 'dashboard_wo' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="home" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    <li><a href="{% url 'kelola_pesanan' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="shopping-bag" class="w-5 h-5 mr-3"></i>Kelola Pesanan</a></li>
+                    <li><a href="{% url 'kelola_paket' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="archive" class="w-5 h-5 mr-3"></i>Kelola Paket</a></li>
+                    <li><a href="{% url 'kelola_gedung' %}" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800"><i data-feather="map-pin" class="w-5 h-5 mr-3"></i>Kelola Gedung</a></li>
+                    <li><a href="{% url 'edit_profil_wo' %}" class="flex items-center p-2 bg-pink-700 font-bold rounded-lg"><i data-feather="user" class="w-5 h-5 mr-3"></i>Profil WO</a></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-pink-800 w-full">
+                                <i data-feather="log-out" class="w-5 h-5 mr-3"></i>Logout
+                            </button>
+                        </form>
+                    </li>   
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+            <div class="max-w-5xl mx-auto">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-serif-display text-gray-900">Edit Profil WO</h2>
+                    <p class="text-gray-500 mt-1">Perbarui informasi brand Anda agar klien lebih percaya.</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 mb-6 text-sm text-green-700 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm flex items-center" role="alert">
+                            <i data-feather="check-circle" class="w-5 h-5 mr-3"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="p-8 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mr-3 text-sm">1</span>
+                                Identitas Brand
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                
+                                <div class="lg:col-span-4 flex flex-col items-center">
+                                    <label class="block text-sm font-medium text-gray-700 mb-3">Logo Brand</label>
+                                    
+                                    <div class="relative w-40 h-40 group cursor-pointer">
+                                        
+                                        <div class="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-lg ring-2 ring-gray-100 bg-gray-100 relative">
+                                            {% if profil_wo.logo %}
+                                                <img id="logo-preview" src="{{ profil_wo.logo.url }}" alt="Logo" class="w-full h-full object-cover">
+                                            {% else %}
+                                                <img id="logo-preview" src="https://ui-avatars.com/api/?name=WO&background=FDF2F8&color=DB2777" alt="Logo Placeholder" class="w-full h-full object-cover">
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="absolute inset-0 rounded-full bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <i data-feather="camera" class="text-white w-6 h-6 mb-1"></i>
+                                            <span class="text-white text-xs font-medium">Ganti Logo</span>
+                                        </div>
+
+                                        <input type="file" name="logo" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/*" onchange="previewImage(this, 'logo-preview')">
+                                    </div>
+
+                                    <p class="text-xs text-gray-400 mt-3 text-center">Format: JPG, PNG. Maks 2MB.</p>
+                                </div>
+                                <div class="lg:col-span-8 space-y-5">
+                                    <div>
+                                        <label for="{{ form.nama_brand.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Brand WO</label>
+                                        {{ form.nama_brand }}
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat</label>
+                                        {{ form.deskripsi }}
+                                        <p class="text-xs text-gray-500 mt-1">Ceritakan keunikan WO Anda.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-8 border-b border-gray-100 bg-gray-50/50">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mr-3 text-sm">2</span>
+                                Kontak & Lokasi
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp</label>
+                                    <div class="relative input-with-icon">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 font-medium bg-gray-50 px-1 rounded">+62</span>
+                                        </div>
+                                        {{ form.telepon }} 
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Bisnis</label>
+                                    <div class="relative input-with-icon">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-feather="mail" class="w-5 h-5 text-gray-400"></i>
+                                        </div>
+                                        {{ form.email_bisnis }}
+                                    </div>
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                                    <div class="relative input-with-icon">
+                                        <div class="absolute top-3 left-3 pointer-events-none">
+                                            <i data-feather="map-pin" class="w-5 h-5 text-gray-400"></i>
+                                        </div>
+                                        {{ form.alamat }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-8">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mr-3 text-sm">3</span>
+                                Visual Halaman
+                            </h3>
+
+                            <div class="mb-8">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Foto Sampul (Header)</label>
+                                <div class="relative w-full h-48 md:h-64 rounded-xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300 hover:border-pink-400 transition group">
+                                    
+                                    {% if profil_wo.foto_sampul %}
+                                        <img id="sampul-preview" src="{{ profil_wo.foto_sampul.url }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <img id="sampul-preview" src="" class="hidden w-full h-full object-cover">
+                                        <div id="sampul-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                                            <i data-feather="image" class="w-10 h-10 mb-2"></i>
+                                            <span class="text-sm">Belum ada foto sampul</span>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none">
+                                        <span class="bg-white text-gray-800 px-4 py-2 rounded-lg font-medium shadow flex items-center">
+                                            <i data-feather="edit-2" class="inline w-4 h-4 mr-2"></i> Ganti Sampul
+                                        </span>
+                                    </div>
+                                    
+                                    <input type="file" name="foto_sampul" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onchange="previewImage(this, 'sampul-preview', 'sampul-placeholder')">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">Galeri Portofolio</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 mb-4">
+                                    {% for foto in profil_wo.galeri.all %}
+                                        <div class="relative aspect-square rounded-lg overflow-hidden group shadow-sm">
+                                            <img src="{{ foto.foto.url }}" alt="Portfolio" class="w-full h-full object-cover">
+                                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition"></div>
+                                        </div>
+                                    {% empty %}
+                                        <div class="col-span-full py-8 text-center bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+                                            <p class="text-gray-400 text-sm">Belum ada foto di galeri portofolio Anda.</p>
+                                        </div>
+                                    {% endfor %}
+                                    
+                                    <label class="relative aspect-square rounded-lg border-2 border-dashed border-pink-300 bg-pink-50 hover:bg-pink-100 flex flex-col items-center justify-center cursor-pointer text-pink-500 transition hover:text-pink-700">
+                                        <i data-feather="plus" class="w-8 h-8 mb-1"></i>
+                                        <span class="text-xs font-semibold">Tambah</span>
+                                        <input id="galeri-upload" name="galeri_wo_foto" type="file" class="hidden" multiple>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-8 py-5 bg-gray-50 border-t border-gray-100 flex items-center justify-end">
+                            <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg flex items-center">
+                                <i data-feather="save" class="w-4 h-4 mr-2"></i>
+                                Simpan Perubahan
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        feather.replace();
+
+        function previewImage(input, imgId, placeholderId = null) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = document.getElementById(imgId);
+                    imgElement.src = e.target.result;
+                    imgElement.classList.remove('hidden');
+                    if (placeholderId) {
+                        const placeholder = document.getElementById(placeholderId);
+                        if(placeholder) placeholder.classList.add('hidden');
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
