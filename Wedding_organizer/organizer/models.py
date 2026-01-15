@@ -66,6 +66,7 @@ class Gedung(models.Model):
 
 # --- MODEL PESANAN ---
 class Pesanan(models.Model):
+    # ... (Field lama tetap sama: status, paket, customer, dll) ...
     STATUS_CHOICES = (
         ('menunggu', 'Menunggu Konfirmasi'),
         ('dikonfirmasi', 'Dikonfirmasi'), 
@@ -78,9 +79,9 @@ class Pesanan(models.Model):
         ('lunas', 'Lunas'),
     )
 
-    paket = models.ForeignKey(Paket, on_delete=models.CASCADE)
+    paket = models.ForeignKey('Paket', on_delete=models.CASCADE)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    gedung_dipilih = models.ForeignKey(Gedung, on_delete=models.SET_NULL, null=True, blank=True, related_name='pesanan_gedung')
+    gedung_dipilih = models.ForeignKey('Gedung', on_delete=models.SET_NULL, null=True, blank=True, related_name='pesanan_gedung')
     
     tgl_acara = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='menunggu')
@@ -95,8 +96,15 @@ class Pesanan(models.Model):
     status_pembayaran = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='belum_bayar')
     catatan_pembatalan = models.TextField(blank=True, null=True)
 
+    # --- TAMBAHAN BARU (REVISI SEMINAR) ---
+    # Field untuk menyimpan jadwal dari WO
+    tgl_fitting = models.DateTimeField(null=True, blank=True, help_text="Jadwal fitting baju pengantin")
+    tgl_survey = models.DateTimeField(null=True, blank=True, help_text="Jadwal survey lokasi/gedung")
+    # --------------------------------------
+
     def __str__(self):
         return f"Pesanan {self.paket.nama_paket} oleh {self.customer.username}"
+
 
 # --- MODEL GALERI ---
 class FotoPortofolio(models.Model):

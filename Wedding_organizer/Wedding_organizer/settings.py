@@ -143,6 +143,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 XENDIT_SECRET_KEY = 'xnd_development_grYeBnBCveKXtIVuN7EFKINr9qB7lzww6ERlQxWp24hOsFRF1ZWmjE5LN4R9MW'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FROM_EMAIL = 'project.website.test.augie@gmail.com'
+
 JAZZMIN_SETTINGS = {
     # Judul yang akan muncul di tab browser dan halaman login
     "site_title": "Wedding Organizer Samarinda Admin",

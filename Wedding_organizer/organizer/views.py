@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Avg
+from django.core.mail import send_mail # Import wajib untuk kirim email
+from django.conf import settings # Import settings untuk akses email pengirim
 
 # Import Forms
 from .forms import GedungForm, PaketForm, PesananForm, UlasanForm
@@ -14,6 +16,7 @@ from .models import Gedung, Paket, Pesanan, FotoPortofolio, FotoGedung, Ulasan
 # ==========================================
 # 1. DASHBOARD
 # ==========================================
+
 @login_required
 def dashboard(request):
     if not hasattr(request.user, 'profil') or request.user.profil.role != 'wo':
@@ -163,7 +166,7 @@ def hapus_paket_view(request, paket_id):
 
 
 # ==========================================
-# 4. MANAJEMEN PESANAN (WO)
+# 4. MANAJEMEN PESANAN (WO) - UPDATE LOGIKA EMAIL
 # ==========================================
 
 @login_required
@@ -178,8 +181,64 @@ def kelola_pesanan_view(request):
 def detail_pesanan_view(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.paket.wo != request.user: return redirect('kelola_pesanan')
+    
     if request.method == 'POST':
         aksi = request.POST.get('aksi')
+        
+        # --- FITUR BARU: UPDATE JADWAL & KIRIM EMAIL ---
+        if 'update_jadwal' in request.POST:
+            # Ambil data dari form
+            tgl_fitting = request.POST.get('tgl_fitting')
+            tgl_survey = request.POST.get('tgl_survey')
+            
+            # Simpan ke database jika ada input
+            updated = False
+            if tgl_fitting:
+                pesanan.tgl_fitting = tgl_fitting
+                updated = True
+            if tgl_survey:
+                pesanan.tgl_survey = tgl_survey
+                updated = True
+            
+            if updated:
+                pesanan.save()
+                messages.success(request, "Jadwal kegiatan berhasil diperbarui.")
+                
+                # Kirim Email Notifikasi
+                try:
+                    subject = f"Update Jadwal Pernikahan - {pesanan.paket.nama_paket}"
+                    
+                    # Format pesan email
+                    msg_fitting = tgl_fitting if tgl_fitting else 'Belum ditentukan'
+                    msg_survey = tgl_survey if tgl_survey else 'Belum ditentukan'
+                    
+                    message = f"""
+                    Halo {pesanan.customer.first_name},
+
+                    Wedding Organizer Anda ({pesanan.paket.wo.profilwo.nama_brand}) telah memperbarui jadwal kegiatan untuk pesanan #{pesanan.id}:
+
+                    1. Jadwal Fitting Baju: {msg_fitting}
+                    2. Jadwal Survey Lokasi: {msg_survey}
+
+                    Silakan cek detail lengkap di menu 'Status Pesanan' pada aplikasi WO-Kita.
+
+                    Terima kasih.
+                    """
+                    
+                    email_from = settings.DEFAULT_FROM_EMAIL
+                    recipient_list = [pesanan.customer.email]
+                    
+                    send_mail(subject, message, email_from, recipient_list)
+                    messages.info(request, f"Notifikasi email telah dikirim ke {pesanan.customer.email}")
+                    
+                except Exception as e:
+                    print(f"Gagal kirim email: {e}")
+                    messages.warning(request, "Jadwal tersimpan, namun gagal mengirim email notifikasi (Cek terminal).")
+
+            return redirect('detail_pesanan', pesanan_id=pesanan.id)
+        # -----------------------------------------------
+
+        # Logika Status Pesanan (Seperti Biasa)
         if aksi == 'terima':
             pesanan.status = 'dikonfirmasi'
             messages.success(request, f"Pesanan #{pesanan.id} berhasil dikonfirmasi. Menunggu pembayaran.")
@@ -190,7 +249,7 @@ def detail_pesanan_view(request, pesanan_id):
         elif aksi == 'siapkan':
             if pesanan.status_pembayaran == 'lunas':
                 pesanan.status = 'disiapkan'
-                messages.success(request, "Status: Sedang Disiapkan.")
+                messages.success(request, "Status diperbarui: Sedang Disiapkan.")
                 pesanan.save()
                 return redirect('detail_pesanan', pesanan_id=pesanan.id)
             else:
@@ -198,13 +257,15 @@ def detail_pesanan_view(request, pesanan_id):
         elif aksi == 'selesai':
             pesanan.status = 'selesai'
             messages.success(request, f"Selamat! Pesanan #{pesanan.id} telah selesai.")
+        
         pesanan.save()
         return redirect('kelola_pesanan')
-    return render(request, 'organizer/detail_pesanan.html', {'pesanan': pesanan, 'page_title': 'Detail Pesanan'})
+
+    return render(request, 'organizer/detail_pesanan.html', {'pesanan': pesanan, 'page_title': f'Detail Pesanan #{pesanan.id}'})
 
 
 # ==========================================
-# 5. SISI CUSTOMER & PEMBAYARAN (MANUAL)
+# 5. SISI CUSTOMER & PEMBAYARAN
 # ==========================================
 
 @login_required

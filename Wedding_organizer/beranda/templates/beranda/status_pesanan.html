@@ -25,7 +25,8 @@
         .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
         .status-menunggu { background-color: #FEF3C7; color: #92400E; }
         .status-dikonfirmasi { background-color: #D1FAE5; color: #065F46; }
-        .status-selesai { background-color: #DBEAFE; color: #1E40AF; }
+        .status-disiapkan { background-color: #DBEAFE; color: #1E40AF; }
+        .status-selesai { background-color: #DCFCE7; color: #166534; }
         .status-dibatalkan { background-color: #FEE2E2; color: #991B1B; }
 
         /* Stepper/Timeline styling */
@@ -156,6 +157,40 @@
                             {% endwith %}
                         </div>
 
+                        <!-- --- FITUR BARU: INFO JADWAL DARI WO --- -->
+                        {% if pesanan_terbaru.tgl_fitting or pesanan_terbaru.tgl_survey %}
+                        <div class="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                            <h4 class="font-bold text-blue-800 text-sm mb-3 flex items-center">
+                                <i data-feather="calendar" class="w-4 h-4 mr-2"></i> Jadwal Kegiatan (Dari WO)
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="bg-white p-3 rounded-lg border border-blue-50">
+                                    <p class="text-gray-500 text-xs uppercase font-bold mb-1">Jadwal Fitting Baju</p>
+                                    <p class="text-gray-800 font-semibold text-sm">
+                                        {% if pesanan_terbaru.tgl_fitting %}
+                                            {{ pesanan_terbaru.tgl_fitting|date:"l, d F Y" }} <br>
+                                            <span class="text-blue-600">Pukul {{ pesanan_terbaru.tgl_fitting|date:"H:i" }}</span>
+                                        {% else %}
+                                            <span class="text-gray-400 italic">Belum ditentukan</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="bg-white p-3 rounded-lg border border-blue-50">
+                                    <p class="text-gray-500 text-xs uppercase font-bold mb-1">Jadwal Survey Lokasi</p>
+                                    <p class="text-gray-800 font-semibold text-sm">
+                                        {% if pesanan_terbaru.tgl_survey %}
+                                            {{ pesanan_terbaru.tgl_survey|date:"l, d F Y" }} <br>
+                                            <span class="text-blue-600">Pukul {{ pesanan_terbaru.tgl_survey|date:"H:i" }}</span>
+                                        {% else %}
+                                            <span class="text-gray-400 italic">Belum ditentukan</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <!-- --------------------------------------- -->
+
                         <!-- Detail Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
                             <div>
@@ -166,7 +201,12 @@
                                     <span class="font-semibold mr-1">Jumlah Tamu:</span> {{ pesanan_terbaru.jumlah_tamu }} Orang
                                 </p>
                                 <p class="flex items-center"><i data-feather="dollar-sign" class="w-4 h-4 mr-3 text-pink-500"></i> 
-                                    <span class="font-semibold mr-1">Total Biaya:</span> Rp {{ pesanan_terbaru.paket.harga|floatformat:0 }}
+                                    <span class="font-semibold mr-1">Total Biaya:</span> Rp 
+                                    {% if pesanan_terbaru.gedung_dipilih %}
+                                        {{ pesanan_terbaru.paket.harga|add:pesanan_terbaru.gedung_dipilih.harga_sewa|intcomma }}
+                                    {% else %}
+                                        {{ pesanan_terbaru.paket.harga|intcomma }}
+                                    {% endif %}
                                 </p>
                             </div>
 
@@ -213,14 +253,8 @@
                 </div>
                 {% else %}
                 <div class="bg-white text-center p-12 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="inline-block p-4 rounded-full bg-pink-50 mb-4">
-                        <i data-feather="shopping-cart" class="w-8 h-8 text-pink-400"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-700">Belum Ada Pesanan Aktif</h3>
-                    <p class="text-gray-500 mt-2 mb-6">Anda belum memiliki pesanan yang sedang berjalan.</p>
-                    <a href="{% url 'daftar_wo' %}" class="btn-primary inline-block py-3 px-8 rounded-xl font-bold shadow hover:shadow-lg transform hover:-translate-y-0.5 transition">
-                        Cari Paket Impian
-                    </a>
+                    <p class="text-gray-500 mb-4">Belum ada pesanan aktif.</p>
+                    <a href="{% url 'daftar_wo' %}" class="btn-primary inline-block py-3 px-8 rounded-xl font-bold shadow">Cari Paket Impian</a>
                 </div>
                 {% endif %}
             </div>
@@ -244,14 +278,19 @@
                             </div>
                         {% endif %}
 
-                        <!-- TOMBOL BERI ULASAN (HANYA MUNCUL JIKA STATUS SELESAI) -->
+                        <!-- TOMBOL BERI ULASAN (HANYA JIKA STATUS SELESAI) -->
                         {% if riwayat.status == 'selesai' %}
-                        <div class="mt-4 border-t pt-3">
-                            <button onclick="openReviewModal('{{ riwayat.id }}')" class="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold py-2 rounded-lg transition flex items-center justify-center text-sm shadow-sm">
-                                <i data-feather="star" class="w-4 h-4 mr-2"></i> Beri Ulasan
-                            </button>
-                        </div>
+                            {% if riwayat.data_ulasan %}
+                                <div class="mt-2 bg-green-50 p-2 rounded text-center text-xs font-bold text-green-700 border border-green-200">
+                                    <i data-feather="check" class="w-3 h-3 inline mr-1"></i> Ulasan Terkirim
+                                </div>
+                            {% else %}
+                                <button onclick="openReviewModal('{{ riwayat.id }}')" class="w-full mt-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 text-sm font-bold py-2 rounded-lg transition flex items-center justify-center shadow-sm">
+                                    <i data-feather="star" class="w-4 h-4 mr-2"></i> Beri Ulasan
+                                </button>
+                            {% endif %}
                         {% endif %}
+
                     </div>
                     {% empty %}
                     <div class="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-100">
@@ -315,45 +354,24 @@
 
     <script>
         feather.replace();
-
-        // Modal Batal
         const cancelModal = document.getElementById('cancel-modal');
         const cancelForm = document.getElementById('cancel-form');
+        function openCancelModal(id) { cancelForm.action = `/organizer/batalkan-pesanan/${id}/`; cancelModal.classList.remove('hidden'); }
+        function closeCancelModal() { cancelModal.classList.add('hidden'); }
 
-        function openCancelModal(pesananId) {
-            const url = `/organizer/batalkan-pesanan/${pesananId}/`;
-            cancelForm.setAttribute('action', url);
-            cancelModal.classList.remove('hidden');
-        }
-
-        function closeCancelModal() {
-            cancelModal.classList.add('hidden');
-        }
-
-        // Modal Ulasan
         const reviewModal = document.getElementById('review-modal');
         const reviewForm = document.getElementById('review-form');
-        
         function openReviewModal(pesananId) {
             // URL ini harus sesuai dengan path yang ada di urls.py
-            // Asumsi: path('beri-ulasan/<int:pesanan_id>/', views.beri_ulasan_view, name='beri_ulasan')
             const url = `/organizer/beri-ulasan/${pesananId}/`;
             reviewForm.setAttribute('action', url);
             reviewModal.classList.remove('hidden');
         }
-        
-        function closeReviewModal() {
-            reviewModal.classList.add('hidden');
-        }
+        function closeReviewModal() { reviewModal.classList.add('hidden'); }
 
-        // Tutup modal jika klik di luar area
-        window.onclick = function(event) {
-            if (event.target == cancelModal) {
-                closeCancelModal();
-            }
-            if (event.target == reviewModal) {
-                closeReviewModal();
-            }
+        window.onclick = function(e) {
+            if (e.target == cancelModal) closeCancelModal();
+            if (e.target == reviewModal) closeReviewModal();
         }
     </script>
 </body>
