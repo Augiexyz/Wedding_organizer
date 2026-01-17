@@ -1,5 +1,5 @@
 from django import forms
-from .models import Gedung, Paket, Pesanan, Ulasan
+from .models import Gedung, Paket, Pesanan, Ulasan, ChatDiskusi
 
 # --- FORM PAKET ---
 class PaketForm(forms.ModelForm):
@@ -119,4 +119,15 @@ class UlasanForm(forms.ModelForm):
         labels = {
             'rating': 'Berikan Rating (Bintang)',
             'komentar': 'Ulasan Anda'
+        }
+        
+class ChatForm(forms.ModelForm):
+    class Meta:
+        model = ChatDiskusi
+        fields = ['pesan']
+        widgets = {
+            'pesan': forms.TextInput(attrs={
+                'class': 'w-full border-gray-300 rounded-full py-2 px-4 focus:ring-pink-500 focus:border-pink-500',
+                'placeholder': 'Ketik pesan Anda di sini...'
+            })
         }

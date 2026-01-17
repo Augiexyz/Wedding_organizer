@@ -35,4 +35,7 @@ urlpatterns = [
 
     # Fitur Ulasan
     path('beri-ulasan/<int:pesanan_id>/', views.beri_ulasan_view, name='beri_ulasan'),
+    
+    path('diskusi/<int:pesanan_id>/', views.ruang_diskusi_view, name='ruang_diskusi'),
+
 ]

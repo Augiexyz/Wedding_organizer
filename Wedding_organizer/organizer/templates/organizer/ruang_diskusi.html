@@ -1,0 +1,149 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
+        
+        .input-message-custom input, 
+        .input-message-custom textarea {
+            width: 100%;
+            background: transparent;
+            outline: none;
+            border: none;
+            font-size: 1rem;
+            resize: none;
+            max-height: 120px;
+        }
+
+        /* Scrollbar cantik */
+        .chat-container::-webkit-scrollbar { width: 6px; }
+        .chat-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 10px; }
+        .chat-container::-webkit-scrollbar-track { background: transparent; }
+
+        /* Wallpaper Pattern Full Screen */
+        .chat-bg {
+            background-color: #efeae2;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col chat-bg overflow-hidden">
+
+    <!-- Header Full Width -->
+    <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex-shrink-0 z-20 shadow-sm">
+        <div class="max-w-3xl mx-auto flex items-center justify-between w-full">
+            <div class="flex items-center gap-4">
+                <a href="javascript:history.back()" class="text-gray-500 hover:text-pink-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+                    <i data-feather="arrow-left" class="w-6 h-6"></i>
+                </a>
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-sm md:text-base">
+                        #{{ pesanan.id }}
+                    </div>
+                    <div class="leading-tight">
+                        <h1 class="font-semibold text-gray-800 text-base md:text-lg">Pesanan #{{ pesanan.id }}</h1>
+                        <p class="text-xs md:text-sm text-gray-500">{{ pesanan.paket.nama_paket }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tambahan menu titik tiga (opsional) untuk estetika -->
+            <button class="text-gray-400 hover:text-gray-600 p-2">
+                <i data-feather="more-vertical" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Area Chat (Full Screen Body) -->
+    <main class="flex-grow overflow-y-auto chat-container p-4 md:p-6" id="chatBox">
+        <div class="max-w-3xl mx-auto flex flex-col space-y-4"> <!-- Container Pesan Dibatasi max-w-3xl agar nyaman dibaca -->
+            
+            <div class="flex justify-center my-4">
+                <span class="bg-gray-200/80 text-gray-600 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
+                    {{ pesanan.tgl_pesan|date:"d F Y" }}
+                </span>
+            </div>
+
+            {% for chat in chats %}
+                <div class="flex w-full {% if chat.pengirim == request.user %}justify-end{% else %}justify-start{% endif %}">
+                    
+                    <div class="max-w-[85%] md:max-w-[70%] flex flex-col {% if chat.pengirim == request.user %}items-end{% else %}items-start{% endif %}">
+                        
+                        {% if chat.pengirim != request.user %}
+                            <span class="text-xs text-gray-500 ml-1 mb-1 font-medium">{{ chat.pengirim.first_name|default:chat.pengirim.username }}</span>
+                        {% endif %}
+
+                        <div class="relative px-4 py-2.5 shadow-sm text-sm md:text-[15px] leading-relaxed break-words
+                            {% if chat.pengirim == request.user %}
+                                bg-pink-600 text-white rounded-l-xl rounded-tr-xl rounded-br-none
+                            {% else %}
+                                bg-white text-gray-800 border border-gray-100 rounded-r-xl rounded-tl-xl rounded-bl-none
+                            {% endif %}">
+                            
+                            {{ chat.pesan }}
+
+                            <div class="flex items-center justify-end gap-1 mt-1.5 select-none">
+                                <span class="text-[10px] md:text-[11px] {% if chat.pengirim == request.user %}text-pink-100{% else %}text-gray-400{% endif %}">
+                                    {{ chat.waktu_kirim|date:"H:i" }}
+                                </span>
+                                {% if chat.pengirim == request.user %}
+                                    <i data-feather="check" class="w-3 h-3 text-pink-100"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="flex flex-col items-center justify-center py-20 text-gray-400 space-y-3 opacity-60">
+                    <div class="bg-gray-100 p-4 rounded-full">
+                        <i data-feather="message-circle" class="w-10 h-10 text-gray-300"></i>
+                    </div>
+                    <p class="text-base">Belum ada diskusi untuk pesanan ini.</p>
+                </div>
+            {% endfor %}
+            
+        </div>
+    </main>
+
+    <!-- Input Area Full Width -->
+    <footer class="bg-white px-4 md:px-6 py-4 border-t border-gray-100 z-20">
+        <div class="max-w-3xl mx-auto w-full">
+            <form method="POST" class="flex items-end gap-3">
+                {% csrf_token %}
+                
+                <!-- Tombol Attach (Opsional, hanya visual) -->
+                <button type="button" class="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
+                    <i data-feather="paperclip" class="w-5 h-5"></i>
+                </button>
+
+                <div class="flex-grow bg-gray-100 rounded-2xl px-5 py-3 input-message-custom focus-within:ring-2 focus-within:ring-pink-100 focus-within:bg-white transition-all border border-transparent focus-within:border-pink-200">
+                    {{ form.pesan }}
+                </div>
+
+                <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white p-3.5 rounded-full shadow-md hover:shadow-lg transition-all active:scale-95 flex-shrink-0">
+                    <i data-feather="send" class="w-5 h-5 fill-current pl-0.5"></i>
+                </button>
+            </form>
+        </div>
+    </footer>
+
+    <script>
+        feather.replace();
+        
+        const chatBox = document.getElementById('chatBox');
+        window.onload = function() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>

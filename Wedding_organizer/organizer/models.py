@@ -132,3 +132,12 @@ class Ulasan(models.Model):
 
     def __str__(self):
         return f"Ulasan oleh {self.penulis.username} untuk {self.wo.profilwo.nama_brand}"
+    
+class ChatDiskusi(models.Model):
+    pesanan = models.ForeignKey(Pesanan, on_delete=models.CASCADE, related_name='chat_diskusi')
+    pengirim = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    pesan = models.TextField()
+    waktu_kirim = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Chat dari {self.pengirim.username} di Pesanan #{self.pesanan.id}"

@@ -4,14 +4,15 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Avg
-from django.core.mail import send_mail # Import wajib untuk kirim email
-from django.conf import settings # Import settings untuk akses email pengirim
+from django.core.mail import send_mail 
+from django.conf import settings 
+import urllib.parse
 
 # Import Forms
-from .forms import GedungForm, PaketForm, PesananForm, UlasanForm
+from .forms import GedungForm, PaketForm, PesananForm, UlasanForm, ChatForm
 
 # Import Models
-from .models import Gedung, Paket, Pesanan, FotoPortofolio, FotoGedung, Ulasan
+from .models import Gedung, Paket, Pesanan, FotoPortofolio, FotoGedung, Ulasan, ChatDiskusi
 
 # ==========================================
 # 1. DASHBOARD
@@ -29,11 +30,11 @@ def dashboard(request):
     pendapatan_total = 0
     pesanan_selesai = Pesanan.objects.filter(paket__wo=request.user, status='selesai')
     for p in pesanan_selesai:
-        # Hitung total pendapatan termasuk gedung jika ada
-        total_pesanan = p.paket.harga
+        # Hitung total pendapatan (Paket + Gedung) untuk statistik
+        total_per_pesanan = p.paket.harga
         if p.gedung_dipilih:
-            total_pesanan += p.gedung_dipilih.harga_sewa
-        pendapatan_total += total_pesanan
+            total_per_pesanan += p.gedung_dipilih.harga_sewa
+        pendapatan_total += total_per_pesanan
 
     chart_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'] 
     chart_data = [0, 0, 0, 0, 0, int(pendapatan_total / 1000000)] 
@@ -166,7 +167,7 @@ def hapus_paket_view(request, paket_id):
 
 
 # ==========================================
-# 4. MANAJEMEN PESANAN (WO) - UPDATE LOGIKA EMAIL
+# 4. MANAJEMEN PESANAN (WO)
 # ==========================================
 
 @login_required
@@ -182,16 +183,29 @@ def detail_pesanan_view(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.paket.wo != request.user: return redirect('kelola_pesanan')
     
+    # Logika Link WA (Dipertahankan)
+    no_hp = pesanan.telepon
+    wa_link = "#"
+    if no_hp:
+        no_hp = no_hp.replace(" ", "").replace("-", "")
+        if no_hp.startswith("0"):
+            no_hp = "62" + no_hp[1:]
+        
+        pesan_wa = f"Halo {pesanan.customer.first_name}, Pesanan #{pesanan.id} ({pesanan.paket.nama_paket}) telah kami konfirmasi.\n\n"
+        pesan_wa += "Untuk pemilihan MENU CATERING, silakan cek highlight Instagram kami ya.\n"
+        pesan_wa += f"👉 Instagram: @{pesanan.paket.wo.profilwo.nama_brand.replace(' ', '').lower()}\n\nTerima kasih!"
+        
+        pesan_encoded = urllib.parse.quote(pesan_wa)
+        wa_link = f"https://wa.me/{no_hp}?text={pesan_encoded}"
+
     if request.method == 'POST':
         aksi = request.POST.get('aksi')
         
-        # --- FITUR BARU: UPDATE JADWAL & KIRIM EMAIL ---
+        # Update Jadwal & Email (Dipertahankan)
         if 'update_jadwal' in request.POST:
-            # Ambil data dari form
             tgl_fitting = request.POST.get('tgl_fitting')
             tgl_survey = request.POST.get('tgl_survey')
             
-            # Simpan ke database jika ada input
             updated = False
             if tgl_fitting:
                 pesanan.tgl_fitting = tgl_fitting
@@ -203,45 +217,23 @@ def detail_pesanan_view(request, pesanan_id):
             if updated:
                 pesanan.save()
                 messages.success(request, "Jadwal kegiatan berhasil diperbarui.")
-                
-                # Kirim Email Notifikasi
                 try:
                     subject = f"Update Jadwal Pernikahan - {pesanan.paket.nama_paket}"
-                    
-                    # Format pesan email
                     msg_fitting = tgl_fitting if tgl_fitting else 'Belum ditentukan'
                     msg_survey = tgl_survey if tgl_survey else 'Belum ditentukan'
-                    
-                    message = f"""
-                    Halo {pesanan.customer.first_name},
-
-                    Wedding Organizer Anda ({pesanan.paket.wo.profilwo.nama_brand}) telah memperbarui jadwal kegiatan untuk pesanan #{pesanan.id}:
-
-                    1. Jadwal Fitting Baju: {msg_fitting}
-                    2. Jadwal Survey Lokasi: {msg_survey}
-
-                    Silakan cek detail lengkap di menu 'Status Pesanan' pada aplikasi WO-Kita.
-
-                    Terima kasih.
-                    """
-                    
+                    message = f"Halo {pesanan.customer.first_name},\nJadwal baru pesanan #{pesanan.id}:\n1. Fitting: {msg_fitting}\n2. Survey: {msg_survey}\nTerima kasih."
                     email_from = settings.DEFAULT_FROM_EMAIL
                     recipient_list = [pesanan.customer.email]
-                    
                     send_mail(subject, message, email_from, recipient_list)
-                    messages.info(request, f"Notifikasi email telah dikirim ke {pesanan.customer.email}")
-                    
-                except Exception as e:
-                    print(f"Gagal kirim email: {e}")
-                    messages.warning(request, "Jadwal tersimpan, namun gagal mengirim email notifikasi (Cek terminal).")
-
+                    messages.info(request, "Email notifikasi terkirim.")
+                except Exception:
+                    pass
             return redirect('detail_pesanan', pesanan_id=pesanan.id)
-        # -----------------------------------------------
 
-        # Logika Status Pesanan (Seperti Biasa)
+        # Logika Status
         if aksi == 'terima':
             pesanan.status = 'dikonfirmasi'
-            messages.success(request, f"Pesanan #{pesanan.id} berhasil dikonfirmasi. Menunggu pembayaran.")
+            messages.success(request, f"Pesanan #{pesanan.id} berhasil dikonfirmasi.")
         elif aksi == 'tolak':
             pesanan.status = 'dibatalkan'
             pesanan.catatan_pembatalan = request.POST.get('alasan_tolak', '')
@@ -261,11 +253,12 @@ def detail_pesanan_view(request, pesanan_id):
         pesanan.save()
         return redirect('kelola_pesanan')
 
-    return render(request, 'organizer/detail_pesanan.html', {'pesanan': pesanan, 'page_title': f'Detail Pesanan #{pesanan.id}'})
+    context = {'pesanan': pesanan, 'page_title': f'Detail Pesanan #{pesanan.id}', 'wa_link': wa_link}
+    return render(request, 'organizer/detail_pesanan.html', context)
 
 
 # ==========================================
-# 5. SISI CUSTOMER & PEMBAYARAN
+# 5. SISI CUSTOMER & PEMBAYARAN (MANUAL)
 # ==========================================
 
 @login_required
@@ -306,7 +299,7 @@ def batalkan_pesanan_view(request, pesanan_id):
 @login_required
 def halaman_pembayaran_view(request, pesanan_id):
     """
-    PEMBAYARAN MANUAL (TRANSFER)
+    PEMBAYARAN MANUAL (TRANSFER) - LOGIKA TOTAL DIPERBAIKI
     """
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.customer != request.user: return redirect('index')
@@ -314,22 +307,30 @@ def halaman_pembayaran_view(request, pesanan_id):
     
     biaya_layanan = 5000
     
-    # Hitung total dengan benar (Paket + Gedung + Layanan)
+    # --- LOGIKA HITUNG TOTAL YANG BENAR ---
     harga_paket = pesanan.paket.harga
     harga_gedung = 0
+    
+    # Tambahkan harga gedung JIKA pesanan memiliki gedung (tidak None)
     if pesanan.gedung_dipilih:
         harga_gedung = pesanan.gedung_dipilih.harga_sewa
         
     total_pembayaran = int(harga_paket + harga_gedung + biaya_layanan)
+    # -------------------------------------
 
     if request.method == 'POST':
-        # --- LOGIKA MANUAL: Langsung Tandai Lunas ---
+        # LOGIKA MANUAL: Langsung ubah jadi Lunas saat diklik
         pesanan.status_pembayaran = 'lunas'
         pesanan.save()
         messages.success(request, "Konfirmasi Berhasil! Pesanan Anda kini berstatus Lunas.")
         return redirect('status_pesanan')
 
-    context = {'pesanan': pesanan, 'biaya_layanan': biaya_layanan, 'total_pembayaran': total_pembayaran}
+    context = {
+        'pesanan': pesanan, 
+        'biaya_layanan': biaya_layanan, 
+        'total_pembayaran': total_pembayaran,
+        'harga_gedung': harga_gedung # Kirim ke template agar bisa ditampilkan
+    }
     return render(request, 'organizer/pembayaran.html', context)
 
 
@@ -340,20 +341,11 @@ def halaman_pembayaran_view(request, pesanan_id):
 @login_required
 def beri_ulasan_view(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
-    
-    # Validasi Pemilik Pesanan
     if pesanan.customer != request.user:
-        messages.error(request, "Akses ditolak.")
         return redirect('index')
-
-    # Validasi Status Pesanan (Harus Selesai)
     if pesanan.status != 'selesai':
-        messages.error(request, "Pesanan belum selesai.")
         return redirect('status_pesanan')
-
-    # Validasi Duplikasi: Cek apakah sudah pernah diulas
     if hasattr(pesanan, 'data_ulasan'):
-        messages.warning(request, "Anda sudah memberikan ulasan untuk pesanan ini.")
         return redirect('status_pesanan')
 
     if request.method == 'POST':
@@ -362,12 +354,44 @@ def beri_ulasan_view(request, pesanan_id):
             ulasan = form.save(commit=False)
             ulasan.wo = pesanan.paket.wo
             ulasan.penulis = request.user
-            ulasan.pesanan = pesanan # Hubungkan ke pesanan agar tidak dobel
+            ulasan.pesanan = pesanan
             ulasan.save()
             messages.success(request, "Ulasan terkirim!")
             return redirect('status_pesanan')
     else:
         form = UlasanForm()
+    return render(request, 'organizer/beri_ulasan.html', {'form': form, 'pesanan': pesanan, 'page_title': 'Beri Ulasan'})
 
-    context = {'form': form, 'pesanan': pesanan, 'page_title': 'Beri Ulasan'}
-    return render(request, 'organizer/beri_ulasan.html', context)
+@login_required
+def ruang_diskusi_view(request, pesanan_id):
+    pesanan = get_object_or_404(Pesanan, id=pesanan_id)
+
+    # Validasi Keamanan: Hanya Pemilik Pesanan (Customer) dan WO yang boleh masuk
+    is_customer = (request.user == pesanan.customer)
+    is_wo = (request.user == pesanan.paket.wo)
+
+    if not is_customer and not is_wo:
+        messages.error(request, "Anda tidak memiliki akses ke ruang diskusi ini.")
+        return redirect('index')
+
+    # Ambil semua chat urut dari yang terlama ke terbaru
+    chats = ChatDiskusi.objects.filter(pesanan=pesanan).order_by('waktu_kirim')
+
+    if request.method == 'POST':
+        form = ChatForm(request.POST)
+        if form.is_valid():
+            chat = form.save(commit=False)
+            chat.pesanan = pesanan
+            chat.pengirim = request.user
+            chat.save()
+            return redirect('ruang_diskusi', pesanan_id=pesanan.id)
+    else:
+        form = ChatForm()
+
+    context = {
+        'pesanan': pesanan,
+        'chats': chats,
+        'form': form,
+        'page_title': f'Diskusi Pesanan #{pesanan.id}'
+    }
+    return render(request, 'organizer/ruang_diskusi.html', context)
