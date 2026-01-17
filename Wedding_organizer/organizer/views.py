@@ -395,3 +395,52 @@ def ruang_diskusi_view(request, pesanan_id):
         'page_title': f'Diskusi Pesanan #{pesanan.id}'
     }
     return render(request, 'organizer/ruang_diskusi.html', context)
+
+@login_required
+def validasi_pemesanan(paket_dipilih, tanggal_booking):
+    """
+    Fungsi ini mengecek apakah Paket atau Gedung tersedia 
+    pada tanggal yang diinginkan customer.
+    
+    Return: (Boleh_Pesan: Boolean, Pesan_Error: String)
+    """
+
+    # --- SKENARIO 1: VALIDASI KUOTA JASA WO ---
+    # Jika paket yang dipilih TIDAK termasuk gedung (Hanya Jasa WO)
+    if paket_dipilih.kategori_gedung == 'non_gedung':
+        
+        # Hitung berapa banyak pesanan yang sudah diterima WO ini di tanggal tersebut
+        jumlah_pesanan_wo = Pesanan.objects.filter(
+            paket__wo = paket_dipilih.wo,       # Milik WO yang sama
+            tgl_acara = tanggal_booking,        # Tanggal yang sama
+            status__in = ['dikonfirmasi', 'disiapkan', 'selesai'] # Status aktif
+        ).count()
+
+        # Batasan: Maksimal 3 acara per hari untuk satu WO
+        BATAS_KUOTA_HARIAN = 3 
+        
+        if jumlah_pesanan_wo >= BATAS_KUOTA_HARIAN:
+            return False, "Maaf, kuota tim WO kami sudah penuh untuk tanggal tersebut."
+
+
+    # --- SKENARIO 2: VALIDASI KETERSEDIAAN GEDUNG FISIK ---
+    # Jika paket termasuk gedung (S/M/L)
+    else:
+        # Cari gedung spesifik yang dipilih customer di form
+        # (Anggap kita sudah dapat ID gedungnya dari input user)
+        gedung_target = input_user.gedung_dipilih 
+
+        # Cek apakah gedung tersebut SUDAH ada yang booking di tanggal itu
+        cek_bentrok = Pesanan.objects.filter(
+            gedung_dipilih = gedung_target,     # Gedung yang sama
+            tgl_acara = tanggal_booking,        # Tanggal yang sama
+            status__in = ['dikonfirmasi', 'disiapkan', 'selesai'] # Status aktif
+        ).exists()
+
+        if cek_bentrok:
+            return False, f"Maaf, Gedung '{gedung_target.nama_gedung}' sudah terpesan di tanggal tersebut."
+
+    
+    # --- HASIL AKHIR ---
+    # Jika lolos semua pengecekan di atas
+    return True, "Tanggal Tersedia! Silakan lanjut pembayaran."
