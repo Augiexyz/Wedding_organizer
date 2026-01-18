@@ -156,13 +156,14 @@
                             </div>
                         </div>
 
+                        <!-- BAGIAN INI DIPERBARUI: Grid diubah jadi 3 kolom untuk muat Kapasitas -->
                         <div class="p-8 border-b border-gray-100 bg-gray-50/50">
                             <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                                 <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mr-3 text-sm">2</span>
                                 Kontak & Lokasi
                             </h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp</label>
                                     <div class="relative input-with-icon">
@@ -182,8 +183,20 @@
                                         {{ form.email_bisnis }}
                                     </div>
                                 </div>
+                                
+                                <!-- INPUT BARU: Kapasitas Harian -->
+                                <div>
+                                    <label for="{{ form.kapasitas_harian.id_for_label }}" class="block text-sm font-bold text-pink-700 mb-1">
+                                        Kapasitas Acara / Hari
+                                        <span class="text-gray-400 font-normal text-xs ml-1" title="Berapa acara maksimal dalam sehari?">(?)</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.kapasitas_harian }}
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">Jumlah maksimal job dalam 1 hari.</p>
+                                </div>
 
-                                <div class="md:col-span-2">
+                                <div class="md:col-span-3">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
                                     <div class="relative input-with-icon">
                                         <div class="absolute top-3 left-3 pointer-events-none">

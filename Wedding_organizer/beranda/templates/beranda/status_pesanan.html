@@ -17,8 +17,12 @@
         body { font-family: 'Inter', sans-serif; background-color: #FDF2F8; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
         .text-primary-dark { color: #831843; }
-        
-        /* Status styling */
+        .btn-primary {
+            background-color: #DB2777; color: white; transition: all 0.3s ease;
+        }
+        .btn-primary:hover { background-color: #BE185D; }
+
+        /* --- STATUS BADGES --- */
         .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
         .status-menunggu { background-color: #FEF3C7; color: #92400E; }
         .status-dikonfirmasi { background-color: #D1FAE5; color: #065F46; }
@@ -26,28 +30,46 @@
         .status-selesai { background-color: #DCFCE7; color: #166534; }
         .status-dibatalkan { background-color: #FEE2E2; color: #991B1B; }
 
-        /* Stepper styling */
-        .step { display: flex; align-items: center; }
-        .step-icon { 
-            width: 2.5rem; height: 2.5rem; 
-            border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: bold; color: white; 
-            transition: all 0.3s ease;
+        /* --- TIMELINE PERBAIKAN --- */
+        .timeline-container { position: relative; width: 100%; margin-bottom: 2rem; }
+        
+        /* Garis Belakang (Abu-abu) */
+        .timeline-line-bg {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 4px;
+            background-color: #F3F4F6; transform: translateY(-50%); z-index: 0;
+            border-radius: 99px;
         }
-        .step-line { flex-grow: 1; height: 3px; transition: all 0.3s ease; }
-        .step-active .step-icon { background-color: #DB2777; box-shadow: 0 0 8px #db27776e; }
-        .step-inactive .step-icon { background-color: #F3C5D5; }
-        .step-active .step-line { background-color: #DB2777; }
-        .step-inactive .step-line { background-color: #F3C5D5; }
+        
+        /* Garis Depan (Pink - Dinamis) */
+        .timeline-line-progress {
+            position: absolute; top: 50%; left: 0; height: 4px;
+            background-color: #DB2777; transform: translateY(-50%); z-index: 1;
+            transition: width 1s ease-in-out; border-radius: 99px;
+        }
 
-        /* Button global */
-        .btn-primary {
-            background-color: #DB2777;
-            color: white;
-            transition: all 0.3s ease;
+        /* Container Icon */
+        .timeline-steps {
+            position: relative; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%;
         }
-        .btn-primary:hover { background-color: #BE185D; }
+
+        /* Lingkaran Icon */
+        .step-circle {
+            width: 3rem; height: 3rem; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; transition: all 0.4s ease;
+            border: 4px solid #fff; /* Border putih agar garis di belakang tidak menabrak */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* State Active */
+        .step-active { background-color: #DB2777; color: white; transform: scale(1.1); }
+        /* State Inactive */
+        .step-inactive { background-color: #E5E7EB; color: #9CA3AF; }
+        
+        /* Khusus Dibatalkan */
+        .step-canceled { background-color: #EF4444; color: white; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -115,39 +137,70 @@
 
                     <div class="p-6 md:p-8">
                         
-                        <div class="w-full mb-10">
+                        <!-- BAGIAN TIMELINE DIPERBAIKI -->
+                        <div class="w-full mb-12 mt-2 px-2">
                             {% with status=pesanan_terbaru.status %}
-                            <div class="flex">
-                                <div class="step step-active w-1/4">
-                                    <div class="step-icon"><i data-feather="clipboard" class="w-5 h-5"></i></div>
-                                    <div class="step-line"></div>
+                            <div class="timeline-container">
+                                <!-- Garis Latar -->
+                                <div class="timeline-line-bg"></div>
+                                
+                                <!-- Garis Progress (Warna Pink) -->
+                                <!-- Logika Lebar Garis -->
+                                <div class="timeline-line-progress" style="width: 
+                                    {% if status == 'menunggu' %}0%
+                                    {% elif status == 'dikonfirmasi' %}33%
+                                    {% elif status == 'disiapkan' %}66%
+                                    {% elif status == 'selesai' %}100%
+                                    {% else %}0%{% endif %};
+                                    {% if status == 'dibatalkan' %}background-color: #EF4444; width: 0%;{% endif %}">
                                 </div>
-                                <div class="step {% if status == 'dikonfirmasi' or status == 'disiapkan' or status == 'selesai' %}step-active{% else %}step-inactive{% endif %} w-1/4">
-                                    <div class="step-icon">
-                                        {% if status == 'dikonfirmasi' or status == 'disiapkan' or status == 'selesai' %}<i data-feather="check" class="w-5 h-5"></i>{% else %}2{% endif %}
+
+                                <!-- Step Icons -->
+                                <div class="timeline-steps">
+                                    
+                                    <!-- Step 1: Dipesan -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="step-circle {% if status != 'dibatalkan' %}step-active{% else %}step-canceled{% endif %}">
+                                            <i data-feather="clipboard" class="w-5 h-5"></i>
+                                        </div>
+                                        <span class="text-xs font-bold mt-2 text-pink-600">Dipesan</span>
                                     </div>
-                                    <div class="step-line"></div>
-                                </div>
-                                <div class="step {% if status == 'disiapkan' or status == 'selesai' %}step-active{% else %}step-inactive{% endif %} w-1/4">
-                                    <div class="step-icon">
-                                        {% if status == 'disiapkan' or status == 'selesai' %}<i data-feather="package" class="w-5 h-5"></i>{% else %}3{% endif %}
+
+                                    <!-- Step 2: Dikonfirmasi -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="step-circle {% if status == 'dikonfirmasi' or status == 'disiapkan' or status == 'selesai' %}step-active{% else %}step-inactive{% endif %}">
+                                            {% if status == 'dikonfirmasi' or status == 'disiapkan' or status == 'selesai' %}
+                                                <i data-feather="check" class="w-5 h-5"></i>
+                                            {% else %}2{% endif %}
+                                        </div>
+                                        <span class="text-xs font-bold mt-2 {% if status == 'dikonfirmasi' or status == 'disiapkan' or status == 'selesai' %}text-pink-600{% else %}text-gray-400{% endif %}">Dikonfirmasi</span>
                                     </div>
-                                    <div class="step-line"></div>
-                                </div>
-                                <div class="step {% if status == 'selesai' %}step-active{% else %}step-inactive{% endif %} w-1/4 justify-end">
-                                    <div class="step-icon">
-                                        {% if status == 'selesai' %}<i data-feather="award" class="w-5 h-5"></i>{% else %}4{% endif %}
+
+                                    <!-- Step 3: Disiapkan -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="step-circle {% if status == 'disiapkan' or status == 'selesai' %}step-active{% else %}step-inactive{% endif %}">
+                                            {% if status == 'disiapkan' or status == 'selesai' %}
+                                                <i data-feather="package" class="w-5 h-5"></i>
+                                            {% else %}3{% endif %}
+                                        </div>
+                                        <span class="text-xs font-bold mt-2 {% if status == 'disiapkan' or status == 'selesai' %}text-pink-600{% else %}text-gray-400{% endif %}">Disiapkan</span>
                                     </div>
+
+                                    <!-- Step 4: Selesai -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="step-circle {% if status == 'selesai' %}step-active{% else %}step-inactive{% endif %}">
+                                            {% if status == 'selesai' %}
+                                                <i data-feather="award" class="w-5 h-5"></i>
+                                            {% else %}4{% endif %}
+                                        </div>
+                                        <span class="text-xs font-bold mt-2 {% if status == 'selesai' %}text-pink-600{% else %}text-gray-400{% endif %}">Selesai</span>
+                                    </div>
+
                                 </div>
-                            </div>
-                            <div class="flex justify-between text-center text-xs font-bold text-gray-600 mt-2">
-                                <div class="w-1/4 text-left text-pink-600">Dipesan</div>
-                                <div class="w-1/4 text-center {% if status == 'dikonfirmasi' or status == 'disiapkan' or status == 'selesai' %}text-pink-600{% endif %}">Dikonfirmasi</div>
-                                <div class="w-1/4 text-center {% if status == 'disiapkan' or status == 'selesai' %}text-pink-600{% endif %}">Disiapkan</div>
-                                <div class="w-1/4 text-right {% if status == 'selesai' %}text-pink-600{% endif %}">Selesai</div>
                             </div>
                             {% endwith %}
                         </div>
+                        <!-- END TIMELINE -->
 
                         {% if pesanan_terbaru.tgl_fitting or pesanan_terbaru.tgl_survey %}
                         <div class="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">

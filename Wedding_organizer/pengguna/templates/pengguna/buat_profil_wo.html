@@ -73,64 +73,79 @@
             <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
                 <div class="mb-8">
                     <h2 class="text-3xl font-serif-display text-primary-dark">Buat Profil WO Anda</h2>
-                    <p class="text-gray-500 mt-2">Lengkapi profil Anda agar dapat ditemukan oleh calon pelanggan. Ini adalah langkah pertama Anda!</p>
+                    <p class="text-gray-500 mt-2">Lengkapi profil dan kapasitas tim Anda agar sistem dapat mengatur jadwal secara otomatis.</p>
                 </div>
                 
                 <form method="POST" enctype="multipart/form-data" class="space-y-6">
-    {% csrf_token %}
+                    {% csrf_token %}
 
-    {% if form.non_field_errors %}
-    <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-        {% for error in form.non_field_errors %}
-        <p>{{ error }}</p>
-        {% endfor %}
-    </div>
-    {% endif %}
+                    {% if form.non_field_errors %}
+                    <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+                        {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-        <div class="md:col-span-2">
-            <label for="{{ form.nama_brand.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Brand WO</label>
-            {{ form.nama_brand }}
-            {% for error in form.nama_brand.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-        </div>
-        <div>
-            <label for="{{ form.logo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Logo / Foto Profil</label>
-            {{ form.logo }}
-            {% for error in form.logo.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-        </div>
-    </div>
+                    <!-- Nama Brand & Logo -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <div class="md:col-span-2">
+                            <label for="{{ form.nama_brand.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nama Brand WO</label>
+                            {{ form.nama_brand }}
+                            {% for error in form.nama_brand.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ form.logo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Logo / Foto Profil</label>
+                            {{ form.logo }}
+                            {% for error in form.logo.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
 
-    <div>
-        <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat</label>
-        {{ form.deskripsi }}
-        {% for error in form.deskripsi.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-    </div>
+                    <!-- Deskripsi -->
+                    <div>
+                        <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat</label>
+                        {{ form.deskripsi }}
+                        {% for error in form.deskripsi.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-            <label for="{{ form.telepon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon (WhatsApp)</label>
-            {{ form.telepon }}
-            {% for error in form.telepon.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-        </div>
-        <div>
-            <label for="{{ form.email_bisnis.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Email Bisnis</label>
-            {{ form.email_bisnis }}
-            {% for error in form.email_bisnis.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-        </div>
-    </div>
+                    <!-- UPDATE: Kontak & Kapasitas (3 Kolom) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="{{ form.telepon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp</label>
+                            {{ form.telepon }}
+                            {% for error in form.telepon.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ form.email_bisnis.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Email Bisnis</label>
+                            {{ form.email_bisnis }}
+                            {% for error in form.email_bisnis.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        
+                        <!-- INPUT BARU: Kapasitas Harian -->
+                        <div>
+                            <label for="{{ form.kapasitas_harian.id_for_label }}" class="block text-sm font-bold text-pink-700 mb-1">
+                                Kapasitas Acara / Hari
+                                <span class="text-gray-400 font-normal text-xs ml-1" title="Berapa acara maksimal dalam sehari?">(?)</span>
+                            </label>
+                            {{ form.kapasitas_harian }}
+                            {% for error in form.kapasitas_harian.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                            <p class="text-xs text-gray-400 mt-1">Jumlah maksimal job dalam 1 hari.</p>
+                        </div>
+                    </div>
 
-    <div>
-        <label for="{{ form.alamat.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
-        {{ form.alamat }}
-        {% for error in form.alamat.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-    </div>
+                    <!-- Alamat -->
+                    <div>
+                        <label for="{{ form.alamat.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                        {{ form.alamat }}
+                        {% for error in form.alamat.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                    </div>
 
-    <div class="pt-4 text-right">
-        <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-transform">
-            Simpan Profil & Lanjutkan
-        </button>
-    </div>
-</form>
+                    <div class="pt-4 text-right">
+                        <button type="submit" class="btn-primary font-semibold py-3 px-8 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-transform">
+                            Simpan Profil & Lanjutkan
+                        </button>
+                    </div>
+                </form>
             </div>
         </main>
     </div>

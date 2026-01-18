@@ -25,6 +25,12 @@ class ProfilWO(models.Model):
     telepon = models.CharField(max_length=20)
     email_bisnis = models.EmailField()
     alamat = models.TextField()
+    
+    kapasitas_harian = models.PositiveIntegerField(
+        default=1, 
+        verbose_name="Kapasitas Acara per Hari",
+        help_text="Berapa maksimal acara yang bisa tim Anda tangani dalam satu hari?"
+    )
 
     def __str__(self):
         return f"Profil WO untuk {self.user.username} - {self.nama_brand}"

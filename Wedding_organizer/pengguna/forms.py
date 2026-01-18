@@ -38,7 +38,7 @@ class ProfilWOForm(forms.ModelForm):
     class Meta:
         model = ProfilWO
         exclude = ['user']
-        fields = ['nama_brand', 'logo', 'foto_sampul', 'deskripsi', 'telepon', 'email_bisnis', 'alamat']
+        fields = ['nama_brand', 'logo', 'foto_sampul', 'deskripsi', 'telepon', 'email_bisnis', 'alamat' ,'kapasitas_harian']
 
 
     def __init__(self, *args, **kwargs):
