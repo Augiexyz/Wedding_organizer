@@ -20,7 +20,7 @@
         }
         .glass-effect {
             backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.6); /* Sedikit lebih putih agar tulisan terbaca */
+            background: rgba(255, 255, 255, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.5);
         }
         .btn-hover:hover {
@@ -51,20 +51,20 @@
             50% { transform: translateY(-20px); }
         }
 
-        /* Custom Styling untuk Input Django agar rapi tanpa @apply */
+        /* Custom Styling untuk Input Django */
         input[type="text"], input[type="password"] {
             width: 100%;
-            padding: 0.75rem 1rem; /* py-3 px-4 */
-            border: 1px solid #fbcfe8; /* border-pink-200 */
-            border-radius: 0.5rem; /* rounded-lg */
-            background-color: rgba(255, 255, 255, 0.5); /* bg-white/50 */
-            color: #1f2937; /* text-gray-800 */
+            padding: 0.75rem 1rem;
+            border: 1px solid #fbcfe8;
+            border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #1f2937;
             outline: none;
             transition: all 0.2s;
         }
         input[type="text"]:focus, input[type="password"]:focus {
-            border-color: #ec4899; /* pink-500 */
-            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2); /* ring-pink */
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
             background-color: white;
         }
     </style>
@@ -97,11 +97,26 @@
             <p class="text-gray-500 text-sm mt-1">Masuk untuk melanjutkan perjalanan impianmu</p>
         </div>
 
+        <!-- NOTIFIKASI SUKSES/ERROR (Penting untuk alur Reset Password) -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="p-4 rounded-xl text-sm text-center font-medium shadow-sm mb-2
+                    {% if message.tags == 'success' %} bg-green-100 text-green-800 border border-green-200
+                    {% elif message.tags == 'error' %} bg-red-100 text-red-800 border border-red-200
+                    {% elif message.tags == 'warning' %} bg-yellow-100 text-yellow-800 border border-yellow-200
+                    {% else %} bg-blue-100 text-blue-800 border border-blue-200 {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Login Form -->
         <form method="POST" class="space-y-5">
             {% csrf_token %}
 
-            <!-- Alert Error (Jika login gagal) -->
+            <!-- Alert Error (Validasi Form Django) -->
             {% if form.errors %}
             <div class="p-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl flex items-start" role="alert">
                 <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
@@ -121,7 +136,10 @@
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700">Kata Sandi</label>
-                    <a href="#" class="text-xs text-pink-600 hover:text-pink-800 transition font-medium">Lupa kata sandi?</a>
+                    
+                    <!-- LINK LUPA PASSWORD DIPERBARUI DI SINI -->
+                    <a href="{% url 'lupa_password' %}" class="text-xs text-pink-600 hover:text-pink-800 transition font-medium">Lupa kata sandi?</a>
+                    
                 </div>
                 {{ form.password }}
             </div>

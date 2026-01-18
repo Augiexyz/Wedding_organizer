@@ -14,6 +14,10 @@ urlpatterns = [
     path('dashboard-wo/', views.dashboard_wo_view, name='dashboard_wo'),
     path('edit-profil-wo/', views.edit_profil_wo_view, name='edit_profil_wo'),
     path('edit-profil/', views.edit_profil_customer_view, name='edit_profil_customer'),
+    
+    path('lupa-password/', views.lupa_password_view, name='lupa_password'),
+    path('verifikasi-otp/', views.verifikasi_otp_view, name='verifikasi_otp'),
+    path('reset-password/', views.reset_password_view, name='reset_password'),
 
 
 
