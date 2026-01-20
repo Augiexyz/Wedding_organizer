@@ -253,24 +253,31 @@ def detail_pesanan_view(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.paket.wo != request.user: return redirect('kelola_pesanan')
     
-    # Logika Link WA
-    no_hp = pesanan.telepon
-    wa_link = "#"
-    if no_hp:
-        no_hp = no_hp.replace(" ", "").replace("-", "")
+    # --- LOGIKA GENERATE LINK WA (MANUAL CLICK) ---
+    wa_link_jadwal = "#"
+    
+    if pesanan.telepon:
+        # 1. Format Nomor HP (08xx -> 628xx)
+        no_hp = pesanan.telepon.replace(" ", "").replace("-", "")
         if no_hp.startswith("0"):
             no_hp = "62" + no_hp[1:]
         
-        pesan_wa = f"Halo {pesanan.customer.first_name}, Pesanan #{pesanan.id} ({pesanan.paket.nama_paket}) telah kami konfirmasi.\n\n"
-        pesan_wa += "Untuk pemilihan MENU CATERING, silakan cek highlight Instagram kami ya.\n"
-        try:
-             # Menggunakan profilwo untuk nama brand
-             pesan_wa += f"👉 Instagram: @{pesanan.paket.wo.profilwo.nama_brand.replace(' ', '').lower()}\n\nTerima kasih!"
-        except:
-             pesan_wa += "Terima kasih!"
+        # 2. Siapkan Data Tanggal (Ambil dari database)
+        tgl_fitting_str = pesanan.tgl_fitting.strftime('%d %B %Y %H:%M') if pesanan.tgl_fitting else 'Belum ditentukan'
+        tgl_survey_str = pesanan.tgl_survey.strftime('%d %B %Y %H:%M') if pesanan.tgl_survey else 'Belum ditentukan'
+
+        # 3. Buat Template Pesan
+        pesan_wa = f"Halo Kak {pesanan.customer.first_name}, berikut update jadwal persiapan pernikahan Anda:\n\n"
+        pesan_wa += f"👔 *Jadwal Fitting:* {tgl_fitting_str}\n"
+        pesan_wa += f"📍 *Jadwal Survey:* {tgl_survey_str}\n\n"
+        pesan_wa += "Mohon konfirmasinya ya kak. Terima kasih! 🙏"
         
+        # 4. Encode pesan agar aman di URL (spasi jadi %20, dll)
         pesan_encoded = urllib.parse.quote(pesan_wa)
-        wa_link = f"https://wa.me/{no_hp}?text={pesan_encoded}"
+        
+        # 5. Gabungkan jadi Link
+        wa_link_jadwal = f"https://wa.me/{no_hp}?text={pesan_encoded}"
+    # ----------------------------------------------------
 
     if request.method == 'POST':
         aksi = request.POST.get('aksi')
@@ -290,45 +297,51 @@ def detail_pesanan_view(request, pesanan_id):
             
             if updated:
                 pesanan.save()
-                messages.success(request, "Jadwal kegiatan berhasil diperbarui.")
+                messages.success(request, "Jadwal berhasil disimpan! Silakan klik tombol WA di bawah untuk mengirim notifikasi ke customer.")
+                
+                # --- TETAP KIRIM EMAIL (Opsional/Backup) ---
                 try:
-                    subject = f"Update Jadwal Pernikahan - {pesanan.paket.nama_paket}"
+                    subject = f"Update Jadwal - {pesanan.paket.nama_paket}"
                     msg_fitting = tgl_fitting if tgl_fitting else 'Belum ditentukan'
                     msg_survey = tgl_survey if tgl_survey else 'Belum ditentukan'
-                    message = f"Halo {pesanan.customer.first_name},\nJadwal baru pesanan #{pesanan.id}:\n1. Fitting: {msg_fitting}\n2. Survey: {msg_survey}\nTerima kasih."
-                    email_from = settings.DEFAULT_FROM_EMAIL
-                    recipient_list = [pesanan.customer.email]
-                    send_mail(subject, message, email_from, recipient_list)
-                except Exception:
+                    email_msg = f"Halo {pesanan.customer.first_name},\nJadwal baru:\nFitting: {msg_fitting}\nSurvey: {msg_survey}"
+                    send_mail(subject, email_msg, settings.DEFAULT_FROM_EMAIL, [pesanan.customer.email])
+                except:
                     pass
+                # -------------------------------------------
+
             return redirect('detail_pesanan', pesanan_id=pesanan.id)
 
-        # Logika Status
+        # ... (Logika Status terima/tolak/siapkan/selesai TETAP SAMA) ...
         if aksi == 'terima':
             pesanan.status = 'dikonfirmasi'
-            messages.success(request, f"Pesanan #{pesanan.id} berhasil dikonfirmasi.")
+            messages.success(request, "Pesanan dikonfirmasi.")
         elif aksi == 'tolak':
             pesanan.status = 'dibatalkan'
             pesanan.catatan_pembatalan = request.POST.get('alasan_tolak', '')
-            messages.warning(request, f"Pesanan #{pesanan.id} telah ditolak.")
+            messages.warning(request, "Pesanan ditolak.")
         elif aksi == 'siapkan':
             if pesanan.status_pembayaran == 'lunas':
                 pesanan.status = 'disiapkan'
-                messages.success(request, "Status diperbarui: Sedang Disiapkan.")
+                messages.success(request, "Status: Sedang Disiapkan.")
                 pesanan.save()
                 return redirect('detail_pesanan', pesanan_id=pesanan.id)
             else:
                 messages.error(request, "Gagal: Belum lunas.")
         elif aksi == 'selesai':
             pesanan.status = 'selesai'
-            messages.success(request, f"Selamat! Pesanan #{pesanan.id} telah selesai.")
+            messages.success(request, "Pesanan Selesai.")
         
         pesanan.save()
         return redirect('kelola_pesanan')
 
-    context = {'pesanan': pesanan, 'page_title': f'Detail Pesanan #{pesanan.id}', 'wa_link': wa_link}
+    # Kirim wa_link_jadwal ke template
+    context = {
+        'pesanan': pesanan, 
+        'page_title': f'Detail Pesanan #{pesanan.id}', 
+        'wa_link_jadwal': wa_link_jadwal 
+    }
     return render(request, 'organizer/detail_pesanan.html', context)
-
 
 # ==========================================
 # 5. SISI CUSTOMER & PEMBAYARAN (MANUAL)
