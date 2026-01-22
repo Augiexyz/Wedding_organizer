@@ -6,8 +6,10 @@ from django.utils import timezone
 from django.db.models import Avg, Sum
 from django.core.mail import send_mail 
 from django.conf import settings 
-import urllib.parse
+from django.utils.html import format_html
+from datetime import timedelta
 import datetime
+import urllib.parse
 
 # Import Forms
 from .forms import GedungForm, PaketForm, PesananForm, UlasanForm, ChatForm
@@ -16,21 +18,53 @@ from .forms import GedungForm, PaketForm, PesananForm, UlasanForm, ChatForm
 from .models import Gedung, Paket, Pesanan, FotoPortofolio, FotoGedung, Ulasan, ChatDiskusi
 
 # ==========================================
-# FUNGSI BANTUAN (VALIDASI JADWAL)
+# FUNGSI BANTUAN (VALIDASI PRIORITAS WO)
 # ==========================================
 
 def cek_ketersediaan(wo_object, tanggal_acara, gedung_object=None):
     """
-    Fungsi Validasi Jadwal (Skenario 2 - Dinamis):
-    1. Status 'menunggu' langsung dianggap membooking (LOCK).
-    2. Gedung: 1 Hari cuma bisa 1 Acara (Strict).
-    3. Jasa WO: Mengikuti 'kapasitas_harian' yang diatur di Profil WO.
+    Fungsi Validasi Jadwal:
+    1. CEK WO DULU (CRITICAL): Jika Tim WO penuh, langsung tolak.
+    2. CEK GEDUNG: Jika Tim WO aman, baru cek ketersediaan gedung.
     """
     
-    # Status pesanan yang dianggap "MENGISI KUOTA/LOCK"
     status_lock = ['menunggu', 'dikonfirmasi', 'disiapkan', 'selesai']
 
-    # 1. VALIDASI PIHAK GEDUNG (Jika customer memilih gedung)
+    # 1. VALIDASI KUOTA TIM WO
+    jumlah_acara_wo = Pesanan.objects.filter(
+        paket__wo=wo_object,
+        tgl_acara=tanggal_acara,
+        status__in=status_lock
+    ).count()
+
+    try:
+        BATAS_TIM_WO = wo_object.profilwo.kapasitas_harian
+    except AttributeError:
+        BATAS_TIM_WO = 1 
+    
+    if jumlah_acara_wo >= BATAS_TIM_WO:
+        saran_tanggal = []
+        cek_tanggal = tanggal_acara + timedelta(days=1)
+        
+        while len(saran_tanggal) < 3 and (cek_tanggal - tanggal_acara).days < 14:
+            count_cek = Pesanan.objects.filter(
+                paket__wo=wo_object,
+                tgl_acara=cek_tanggal,
+                status__in=status_lock
+            ).count()
+            if count_cek < BATAS_TIM_WO:
+                saran_tanggal.append(cek_tanggal.strftime('%d %B %Y'))
+            cek_tanggal += timedelta(days=1)
+        
+        str_saran = ", ".join(saran_tanggal)
+        pesan_error = (
+            f"⛔ MOHON MAAF, Tim WO kami sudah FULL BOOKED (Penuh) pada tanggal {tanggal_acara.strftime('%d-%m-%Y')}. "
+            f"Meskipun gedung tersedia, tim kami tidak bisa melayani. "
+            f"Saran tanggal terdekat yang masih kosong: {str_saran}."
+        )
+        return False, pesan_error
+
+    # 2. VALIDASI PIHAK GEDUNG
     if gedung_object:
         bentrok_gedung = Pesanan.objects.filter(
             gedung_dipilih=gedung_object,
@@ -39,26 +73,36 @@ def cek_ketersediaan(wo_object, tanggal_acara, gedung_object=None):
         ).exists()
 
         if bentrok_gedung:
-            return False, f"Maaf, Gedung '{gedung_object.nama_gedung}' sedang dibooking orang lain pada tanggal {tanggal_acara}. Mohon pilih gedung lain atau tanggal berbeda."
+            try:
+                kategori_target = gedung_object.kategori
+            except AttributeError:
+                kategori_target = None
 
-    # 2. VALIDASI PIHAK WO (Kuota Harian Tim - DINAMIS)
-    jumlah_acara_wo = Pesanan.objects.filter(
-        paket__wo=wo_object,
-        tgl_acara=tanggal_acara,
-        status__in=status_lock
-    ).count()
+            if kategori_target:
+                gedung_lain = Gedung.objects.filter(wo=wo_object, kategori=kategori_target).exclude(id=gedung_object.id)
+                label_tipe = f"Tipe {kategori_target}"
+            else:
+                gedung_lain = Gedung.objects.filter(wo=wo_object).exclude(id=gedung_object.id)
+                label_tipe = "lainnya"
+            
+            gedung_free = []
+            for gd in gedung_lain:
+                is_taken = Pesanan.objects.filter(
+                    gedung_dipilih=gd, 
+                    tgl_acara=tanggal_acara, 
+                    status__in=status_lock
+                ).exists()
+                if not is_taken:
+                    gedung_free.append(gd.nama_gedung)
+            
+            pesan_error = f"⚠️ Maaf, Gedung '{gedung_object.nama_gedung}' sudah terisi pada tanggal {tanggal_acara.strftime('%d-%m-%Y')}."
+            if gedung_free:
+                list_gedung = ", ".join(gedung_free)
+                pesan_error += f" Namun, gedung {label_tipe} berikut MASIH TERSEDIA di hari yang sama: {list_gedung}."
+            else:
+                pesan_error += f" Dan mohon maaf, seluruh gedung {label_tipe} kami penuh di tanggal tersebut."
 
-    # --- LOGIKA DINAMIS ---
-    # Mengambil kapasitas dari database ProfilWO
-    try:
-        # Pastikan wo_object adalah user, dan akses profilwo-nya
-        BATAS_TIM_WO = wo_object.profilwo.kapasitas_harian
-    except AttributeError:
-        # Fallback jika profil belum dibuat atau field belum ada
-        BATAS_TIM_WO = 1 
-    
-    if jumlah_acara_wo >= BATAS_TIM_WO:
-        return False, f"Maaf, Tim WO kami sudah penuh. Kuota harian kami ({BATAS_TIM_WO} acara) sudah terpenuhi di tanggal {tanggal_acara}. Mohon pilih hari lain."
+            return False, pesan_error
 
     return True, "Jadwal Tersedia"
 
@@ -72,12 +116,10 @@ def dashboard(request):
     if not hasattr(request.user, 'profil') or request.user.profil.role != 'wo':
         return redirect('index')
 
-    # Data Statistik Dasar
     jumlah_paket = Paket.objects.filter(wo=request.user).count()
     jumlah_gedung = Gedung.objects.filter(wo=request.user).count()
     pesanan_baru = Pesanan.objects.filter(paket__wo=request.user, status='menunggu').count()
     
-    # Hitung Total Pendapatan Keseluruhan (Selesai)
     pendapatan_total = 0
     pesanan_selesai = Pesanan.objects.filter(paket__wo=request.user, status='selesai')
     for p in pesanan_selesai:
@@ -86,7 +128,6 @@ def dashboard(request):
             total_per_pesanan += p.gedung_dipilih.harga_sewa
         pendapatan_total += total_per_pesanan
 
-    # --- GRAFIK (CHART) DINAMIS ---
     tahun_ini = datetime.date.today().year
     chart_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     chart_data = []
@@ -98,20 +139,15 @@ def dashboard(request):
             tgl_pesan__year=tahun_ini,
             tgl_pesan__month=bulan
         )
-        
         total_bulan = 0
         for p in pesanan_bulan_ini:
             total_bulan += p.paket.harga
             if p.gedung_dipilih:
                 total_bulan += p.gedung_dipilih.harga_sewa
-        
-        # Masukkan ke data chart (dalam jutaan)
         chart_data.append(int(total_bulan / 1000000))
 
-    # Data List
     pesanan_terbaru = Pesanan.objects.filter(paket__wo=request.user).order_by('-tgl_pesan')[:5]
     paket_populer = Paket.objects.filter(wo=request.user)[:3]
-
     ulasan_list = Ulasan.objects.filter(wo=request.user).order_by('-created_at')
     rating_rata2 = ulasan_list.aggregate(Avg('rating'))['rating__avg'] or 0
 
@@ -253,31 +289,43 @@ def detail_pesanan_view(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.paket.wo != request.user: return redirect('kelola_pesanan')
     
-    # --- LOGIKA GENERATE LINK WA (MANUAL CLICK) ---
-    wa_link_jadwal = "#"
+    # -------------------------------------------------------------
+    # 1. LINK WA GENERAL (HUBUNGI & INFO CATERING)
+    # -------------------------------------------------------------
+    wa_link = "#"
+    no_hp_clean = ""
     
     if pesanan.telepon:
-        # 1. Format Nomor HP (08xx -> 628xx)
-        no_hp = pesanan.telepon.replace(" ", "").replace("-", "")
-        if no_hp.startswith("0"):
-            no_hp = "62" + no_hp[1:]
+        # Bersihkan nomor HP
+        no_hp_clean = pesanan.telepon.replace(" ", "").replace("-", "")
+        if no_hp_clean.startswith("0"):
+            no_hp_clean = "62" + no_hp_clean[1:]
         
-        # 2. Siapkan Data Tanggal (Ambil dari database)
+        # Buat pesan template general
+        pesan_wa_gen = f"Halo {pesanan.customer.first_name}, Pesanan #{pesanan.id} ({pesanan.paket.nama_paket}) telah kami terima/konfirmasi.\n\n"
+        pesan_wa_gen += "Untuk diskusi lebih lanjut atau pemilihan MENU CATERING, silakan balas pesan ini.\n"
+        try:
+             pesan_wa_gen += f"👉 Instagram: @{pesanan.paket.wo.profilwo.nama_brand.replace(' ', '').lower()}\n\nTerima kasih!"
+        except:
+             pesan_wa_gen += "Terima kasih!"
+        
+        wa_link = f"https://wa.me/{no_hp_clean}?text={urllib.parse.quote(pesan_wa_gen)}"
+
+    # -------------------------------------------------------------
+    # 2. LINK WA JADWAL (NOTIF FITTING/SURVEY)
+    # -------------------------------------------------------------
+    wa_link_jadwal = "#"
+    if no_hp_clean: # Gunakan nomor HP yg sudah bersih
         tgl_fitting_str = pesanan.tgl_fitting.strftime('%d %B %Y %H:%M') if pesanan.tgl_fitting else 'Belum ditentukan'
         tgl_survey_str = pesanan.tgl_survey.strftime('%d %B %Y %H:%M') if pesanan.tgl_survey else 'Belum ditentukan'
 
-        # 3. Buat Template Pesan
-        pesan_wa = f"Halo Kak {pesanan.customer.first_name}, berikut update jadwal persiapan pernikahan Anda:\n\n"
-        pesan_wa += f"👔 *Jadwal Fitting:* {tgl_fitting_str}\n"
-        pesan_wa += f"📍 *Jadwal Survey:* {tgl_survey_str}\n\n"
-        pesan_wa += "Mohon konfirmasinya ya kak. Terima kasih! 🙏"
+        pesan_wa_jadwal = f"Halo Kak {pesanan.customer.first_name}, berikut update jadwal persiapan pernikahan Anda:\n\n"
+        pesan_wa_jadwal += f"👔 *Jadwal Fitting:* {tgl_fitting_str}\n"
+        pesan_wa_jadwal += f"📍 *Jadwal Survey:* {tgl_survey_str}\n\n"
+        pesan_wa_jadwal += "Mohon konfirmasinya ya kak. Terima kasih! 🙏"
         
-        # 4. Encode pesan agar aman di URL (spasi jadi %20, dll)
-        pesan_encoded = urllib.parse.quote(pesan_wa)
-        
-        # 5. Gabungkan jadi Link
-        wa_link_jadwal = f"https://wa.me/{no_hp}?text={pesan_encoded}"
-    # ----------------------------------------------------
+        wa_link_jadwal = f"https://wa.me/{no_hp_clean}?text={urllib.parse.quote(pesan_wa_jadwal)}"
+    # -------------------------------------------------------------
 
     if request.method == 'POST':
         aksi = request.POST.get('aksi')
@@ -297,9 +345,9 @@ def detail_pesanan_view(request, pesanan_id):
             
             if updated:
                 pesanan.save()
-                messages.success(request, "Jadwal berhasil disimpan! Silakan klik tombol WA di bawah untuk mengirim notifikasi ke customer.")
+                messages.success(request, "Jadwal berhasil disimpan! Silakan klik tombol WA di bawah untuk mengirim notifikasi.")
                 
-                # --- TETAP KIRIM EMAIL (Opsional/Backup) ---
+                # Email Backup
                 try:
                     subject = f"Update Jadwal - {pesanan.paket.nama_paket}"
                     msg_fitting = tgl_fitting if tgl_fitting else 'Belum ditentukan'
@@ -308,40 +356,40 @@ def detail_pesanan_view(request, pesanan_id):
                     send_mail(subject, email_msg, settings.DEFAULT_FROM_EMAIL, [pesanan.customer.email])
                 except:
                     pass
-                # -------------------------------------------
 
             return redirect('detail_pesanan', pesanan_id=pesanan.id)
 
-        # ... (Logika Status terima/tolak/siapkan/selesai TETAP SAMA) ...
+        # Logika Status
         if aksi == 'terima':
             pesanan.status = 'dikonfirmasi'
-            messages.success(request, "Pesanan dikonfirmasi.")
+            messages.success(request, f"Pesanan #{pesanan.id} berhasil dikonfirmasi.")
         elif aksi == 'tolak':
             pesanan.status = 'dibatalkan'
             pesanan.catatan_pembatalan = request.POST.get('alasan_tolak', '')
-            messages.warning(request, "Pesanan ditolak.")
+            messages.warning(request, f"Pesanan #{pesanan.id} telah ditolak.")
         elif aksi == 'siapkan':
             if pesanan.status_pembayaran == 'lunas':
                 pesanan.status = 'disiapkan'
-                messages.success(request, "Status: Sedang Disiapkan.")
+                messages.success(request, "Status diperbarui: Sedang Disiapkan.")
                 pesanan.save()
                 return redirect('detail_pesanan', pesanan_id=pesanan.id)
             else:
                 messages.error(request, "Gagal: Belum lunas.")
         elif aksi == 'selesai':
             pesanan.status = 'selesai'
-            messages.success(request, "Pesanan Selesai.")
+            messages.success(request, f"Selamat! Pesanan #{pesanan.id} telah selesai.")
         
         pesanan.save()
         return redirect('kelola_pesanan')
 
-    # Kirim wa_link_jadwal ke template
     context = {
         'pesanan': pesanan, 
         'page_title': f'Detail Pesanan #{pesanan.id}', 
-        'wa_link_jadwal': wa_link_jadwal 
+        'wa_link': wa_link,                 # Ini untuk tombol "Hubungi & Info Catering"
+        'wa_link_jadwal': wa_link_jadwal    # Ini untuk tombol "Kirim Notif WA"
     }
     return render(request, 'organizer/detail_pesanan.html', context)
+
 
 # ==========================================
 # 5. SISI CUSTOMER & PEMBAYARAN (MANUAL)
@@ -349,44 +397,66 @@ def detail_pesanan_view(request, pesanan_id):
 
 @login_required
 def buat_pesanan_view(request, paket_id):
+    from django.db.models import Count
     paket = get_object_or_404(Paket, id=paket_id)
     if not hasattr(request.user, 'profil') or request.user.profil.role != 'customer':
         return redirect('detail_paket', paket_id=paket.id)
+
+    # --- LOGIKA TANGGAL PENUH (FLATPICKR) ---
+    today = datetime.date.today()
+    future_limit = today + datetime.timedelta(days=365)
+
+    try:
+        kapasitas_max = paket.wo.profilwo.kapasitas_harian
+    except:
+        kapasitas_max = 1
+
+    tanggal_penuh_query = Pesanan.objects.filter(
+        paket__wo=paket.wo,
+        tgl_acara__range=[today, future_limit],
+        status__in=['menunggu', 'dikonfirmasi', 'disiapkan', 'selesai']
+    ).values('tgl_acara').annotate(jumlah=Count('id')).filter(jumlah__gte=kapasitas_max)
+
+    list_tanggal_penuh = [item['tgl_acara'].strftime("%Y-%m-%d") for item in tanggal_penuh_query]
+    # ----------------------------------------
 
     if request.method == 'POST':
         form = PesananForm(request.POST, paket=paket)
         
         if form.is_valid():
-            # --- IMPLEMENTASI VALIDASI ANTI-BENTROK ---
-            # 1. Ambil data dari form
             tgl_input = form.cleaned_data.get('tgl_acara')
-            gedung_input = form.cleaned_data.get('gedung_dipilih') # Bisa None
+            gedung_input = form.cleaned_data.get('gedung_dipilih')
 
-            # 2. Panggil fungsi cek_ketersediaan (Skenario 2: Locking)
             boleh_pesan, pesan_notif = cek_ketersediaan(
                 wo_object=paket.wo, 
                 tanggal_acara=tgl_input, 
                 gedung_object=gedung_input
             )
 
-            # 3. Jika Validasi Gagal (Penuh/Bentrok)
             if not boleh_pesan:
                 messages.error(request, pesan_notif)
-                return render(request, 'organizer/buat_pesanan.html', {'form': form, 'paket': paket, 'page_title': 'Buat Pesanan'})
+                return render(request, 'organizer/buat_pesanan.html', {
+                    'form': form, 'paket': paket, 'page_title': 'Buat Pesanan',
+                    'booked_dates': list_tanggal_penuh
+                })
 
-            # 4. Jika Validasi Lolos, Simpan Pesanan
             pesanan = form.save(commit=False)
             pesanan.paket = paket
             pesanan.customer = request.user
-            pesanan.status = 'menunggu' # Status 'menunggu' sekarang sudah otomatis memblokir jadwal
+            pesanan.status = 'menunggu'
             pesanan.save()
             
-            messages.success(request, "Pesanan berhasil dikirim! Jadwal tanggal telah kami kunci untuk Anda menunggu konfirmasi admin.")
+            messages.success(request, "Pesanan berhasil dikirim! Jadwal tanggal telah kami kunci.")
             return redirect('pesanan_berhasil', pesanan_id=pesanan.id)
     else:
         form = PesananForm(paket=paket)
         
-    return render(request, 'organizer/buat_pesanan.html', {'form': form, 'paket': paket, 'page_title': 'Buat Pesanan'})
+    return render(request, 'organizer/buat_pesanan.html', {
+        'form': form, 
+        'paket': paket, 
+        'page_title': 'Buat Pesanan',
+        'booked_dates': list_tanggal_penuh
+    })
 
 @login_required
 def pesanan_berhasil_view(request, pesanan_id):
@@ -405,25 +475,18 @@ def batalkan_pesanan_view(request, pesanan_id):
 
 @login_required
 def halaman_pembayaran_view(request, pesanan_id):
-    """
-    PEMBAYARAN MANUAL (TRANSFER)
-    """
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
     if pesanan.customer != request.user: return redirect('index')
     if pesanan.status_pembayaran == 'lunas': return redirect('status_pesanan')
     
     biaya_layanan = 5000
-    
-    # Logic Total
     harga_paket = pesanan.paket.harga
     harga_gedung = 0
     if pesanan.gedung_dipilih:
         harga_gedung = pesanan.gedung_dipilih.harga_sewa
-        
     total_pembayaran = int(harga_paket + harga_gedung + biaya_layanan)
 
     if request.method == 'POST':
-        # LOGIKA MANUAL: Langsung ubah jadi Lunas saat diklik
         pesanan.status_pembayaran = 'lunas'
         pesanan.save()
         messages.success(request, "Konfirmasi Berhasil! Pesanan Anda kini berstatus Lunas.")
@@ -469,8 +532,6 @@ def beri_ulasan_view(request, pesanan_id):
 @login_required
 def ruang_diskusi_view(request, pesanan_id):
     pesanan = get_object_or_404(Pesanan, id=pesanan_id)
-
-    # Validasi Akses
     is_customer = (request.user == pesanan.customer)
     is_wo = (request.user == pesanan.paket.wo)
 
